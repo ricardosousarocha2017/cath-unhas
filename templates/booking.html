@@ -3,7 +3,7 @@
 {% block content %}
 <div class="form-container">
     <h2>🗓️ Agende o Seu Atendimento</h2>
-    <p class="subtitle">Preencha os seus dados abaixo para reservar o seu horário no studio.</p>
+    <p class="subtitle">Escolha o serviço desejado e o horário disponível.</p>
 
     <form action="{{ url_for('booking') }}" method="POST">
         <div class="form-group">
@@ -17,15 +17,12 @@
         </div>
 
         <div class="form-group">
-            <label for="servico">Escolha o Serviço:</label>
-            <select id="servico" name="servico" required>
-                <option value="" disabled selected>Selecione um procedimento...</option>
-                <option value="Manicure Simples">Manicure Simples</option>
-                <option value="Pedicure Simples">Pedicure Simples</option>
-                <option value="Combo Manicure + Pedicure">Combo Manicure + Pedicure</option>
-                <option value="Alongamento em Gel/Fibra">Alongamento em Gel / Fibra de Vidro</option>
-                <option value="Manutenção de Gel">Manutenção de Gel</option>
-                <option value="Esmaltação em Gel">Esmaltação em Gel</option>
+            <label for="servico_id">Escolha o Procedimento:</label>
+            <select id="servico_id" name="servico_id" required>
+                <option value="" disabled selected>Selecione um serviço...</option>
+                {% for s in servicos %}
+                    <option value="{{ s['id'] }}">{{ s['nome'] }} — R$ {{ "%.2f"|format(s['preco']) }}</option>
+                {% endfor %}
             </select>
         </div>
 
@@ -35,8 +32,13 @@
                 <input type="date" id="data" name="data" required>
             </div>
             <div class="form-group">
-                <label for="hora">Horário:</label>
-                <input type="time" id="hora" name="hora" required>
+                <label for="hora">Horário Disponível:</label>
+                <select id="hora" name="hora" required>
+                    <option value="" disabled selected>Horários...</option>
+                    {% for h in horarios %}
+                        <option value="{{ h['hora'] }}">{{ h['hora'] }}</option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
 
