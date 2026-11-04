@@ -6,19 +6,49 @@
     <p>Bem-vinda de volta, <strong>{{ username }}</strong>!</p>
 </div>
 
-<!-- Gestão de Preços dos Serviços -->
+<!-- Configurar WhatsApp do Administrador -->
 <div class="admin-card">
-    <h3>💰 Alterar Valores dos Serviços</h3>
+    <h3>📲 Seu Número do WhatsApp (Receber Agendamentos)</h3>
+    <form action="{{ url_for('atualizar_whatsapp') }}" method="POST" class="form-inline">
+        <div class="form-group">
+            <label>Número com DDD (Apenas números, ex: 5511999999999):</label>
+            <input type="text" name="novo_whatsapp" value="{{ numero_whatsapp }}" placeholder="5511999999999" required>
+        </div>
+        <button type="submit" class="btn-secondary">Salvar Número</button>
+    </form>
+</div>
+
+<!-- Incluir Novos Serviços e Gestão de Preços -->
+<div class="admin-card">
+    <h3>➕ Incluir Novo Serviço</h3>
+    <form action="{{ url_for('adicionar_servico') }}" method="POST" class="form-inline margin-bottom">
+        <div class="form-group">
+            <label>Nome do Serviço:</label>
+            <input type="text" name="nome_servico" placeholder="Ex: Nail Art Decorada" required>
+        </div>
+        <div class="form-group">
+            <label>Preço (R$):</label>
+            <input type="number" step="0.01" name="preco_servico" placeholder="120.00" required>
+        </div>
+        <button type="submit" class="btn-primary btn-sm">+ Adicionar Serviço</button>
+    </form>
+
+    <hr class="divider">
+
+    <h3>💰 Preços Atualizados & Exclusão de Serviços</h3>
     <div class="grid-admin">
         {% for s in servicos %}
-        <form action="{{ url_for('atualizar_preco') }}" method="POST" class="price-box">
-            <input type="hidden" name="servico_id" value="{{ s['id'] }}">
-            <strong>{{ s['nome'] }}</strong>
-            <div class="form-inline">
+        <div class="price-box">
+            <form action="{{ url_for('atualizar_preco') }}" method="POST" class="form-inline">
+                <input type="hidden" name="servico_id" value="{{ s['id'] }}">
+                <strong>{{ s['nome'] }}</strong>
                 <input type="number" step="0.01" name="novo_preco" value="{{ "%.2f"|format(s['preco']) }}" required>
                 <button type="submit" class="btn-secondary btn-sm">Salvar</button>
-            </div>
-        </form>
+            </form>
+            <form action="{{ url_for('remover_servico', servico_id=s['id']) }}" method="POST" onsubmit="return confirm('Deseja realmente excluir este serviço?');" class="margin-top-sm">
+                <button type="submit" class="btn-danger btn-sm">Excluir Serviço</button>
+            </form>
+        </div>
         {% endfor %}
     </div>
 </div>
@@ -41,7 +71,7 @@
 
     <form action="{{ url_for('adicionar_horario') }}" method="POST" class="form-inline margin-top">
         <input type="text" name="novo_horario" placeholder="Ex: 19:30" required>
-        <button type="submit" class="btn-secondary">Adicionar Novo Horário</button>
+        <button type="submit" class="btn-secondary">Adicionar Horário</button>
     </form>
 </div>
 

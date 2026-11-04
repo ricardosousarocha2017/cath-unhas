@@ -1,8 +1,7 @@
-# Cath Unhas - Versão Gestão Completa
+# Cath Unhas - Edição com Gestão Completa de Serviços e WhatsApp
 
-Aplicação Web Flask completa com:
-- Novos serviços: Molde F1 e Banho de Gel.
-- Gestão de preços de serviços pelo Admin.
-- Controle e restrição de horários de agendamento.
-- Notificação instantânea via WhatsApp.
-- Alteração segura de utilizador/palavra-passe.
+Recursos adicionados nesta versão:
+1. Envio automático de confirmação de agendamento diretamente para o WhatsApp do Administrador.
+2. Inclusão e exclusão de novos serviços no Painel Administrativo.
+3. Configuração do número do WhatsApp da Admin diretamente pelo painel.
+4. Alteração de preços, restrição de horários e alteração de senha do admin.

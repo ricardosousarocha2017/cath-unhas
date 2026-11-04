@@ -165,6 +165,15 @@ body {
     font-weight: 600;
 }
 
+.btn-danger {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
 .btn-sm { padding: 6px 14px; font-size: 0.85rem; }
 
 .btn-whatsapp {
@@ -212,7 +221,7 @@ body {
 
 .grid-admin {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 1rem;
     margin-top: 1rem;
 }
@@ -222,10 +231,13 @@ body {
     padding: 1rem;
     border-radius: 8px;
     border: 1px solid #f3e1e9;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .price-box input {
-    width: 100px;
+    width: 90px;
     padding: 6px;
     border-radius: 4px;
     border: 1px solid #ccc;
@@ -250,12 +262,21 @@ body {
 .btn-horario.ativo { background: #d4edda; color: #155724; }
 .btn-horario.bloqueado { background: #f8d7da; color: #721c24; text-decoration: line-through; }
 
+.divider {
+    margin: 1.5rem 0;
+    border: 0;
+    border-top: 1px solid #f3e1e9;
+}
+
 .margin-top { margin-top: 1.2rem; }
+.margin-top-sm { margin-top: 0.5rem; }
+.margin-bottom { margin-bottom: 1.2rem; }
 
 .form-inline {
     display: flex;
     gap: 0.8rem;
     align-items: center;
+    flex-wrap: wrap;
 }
 
 .table-responsive { overflow-x: auto; }

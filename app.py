@@ -1,14 +1,13 @@
 import os
 import sqlite3
 from urllib.parse import quote
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_secreta_2026_v3')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_secreta_2026_v4')
 
 DB_NAME = 'database.db'
-NUMERO_WHATSAPP_ADMIN = "5511963271437"  # Substitua pelo seu número com DDD
 
 def get_db_connection():
     conn = sqlite3.connect(DB_NAME)
@@ -51,6 +50,15 @@ def init_db():
         )
     ''')
     
+    # Tabela de Configurações Gerais (ex: Número do WhatsApp do Admin)
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS config (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            chave TEXT UNIQUE NOT NULL,
+            valor TEXT NOT NULL
+        )
+    ''')
+    
     # Tabela de Usuários Admin
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS usuarios (
@@ -60,7 +68,10 @@ def init_db():
         )
     ''')
 
-    # Serviços Iniciais Solicitados
+    # Configuração Padrão do WhatsApp Admin (Altere no Painel Admin ou aqui)
+    cursor.execute('INSERT OR IGNORE INTO config (chave, valor) VALUES (?, ?)', ('whatsapp_admin', '5511999999999'))
+
+    # Serviços Iniciais
     servicos_iniciais = [
         ('Alongamento Molde F1', 150.00),
         ('Manutenção de Molde F1', 90.00),
@@ -70,7 +81,7 @@ def init_db():
     for s_nome, s_preco in servicos_iniciais:
         cursor.execute('INSERT OR IGNORE INTO servicos (nome, preco) VALUES (?, ?)', (s_nome, s_preco))
 
-    # Horários Iniciais de Atendimento (exemplo: 08:00 às 18:00)
+    # Horários Iniciais
     horarios_padrao = ["08:00", "09:30", "11:00", "13:30", "15:00", "16:30", "18:00"]
     for h in horarios_padrao:
         cursor.execute('INSERT OR IGNORE INTO horarios_config (hora, ativo) VALUES (?, 1)', (h,))
@@ -106,8 +117,9 @@ def booking():
         data = request.form.get('data')
         hora = request.form.get('hora')
 
-        # Buscar detalhes do serviço selecionado
         servico = conn.execute('SELECT * FROM servicos WHERE id = ?', (servico_id,)).fetchone()
+        whatsapp_config = conn.execute("SELECT valor FROM config WHERE chave = 'whatsapp_admin'").fetchone()
+        numero_whatsapp_admin = whatsapp_config['valor'] if whatsapp_config else "5511999999999"
         
         if servico:
             conn.execute(
@@ -115,12 +127,12 @@ def booking():
                 (nome, telefone, servico['nome'], servico['preco'], data, hora)
             )
             conn.commit()
-            conn.close()
 
-            # Mensagem formatada para o WhatsApp da Admin
+            # Mensagem formatada enviada automaticamente via link direto para o WhatsApp da Admin
             mensagem = f"💅 *Novo Agendamento - Cath Unhas*\n\n👤 *Cliente:* {nome}\n📞 *Telefone:* {telefone}\n✨ *Serviço:* {servico['nome']}\n💰 *Valor:* R$ {servico['preco']:.2f}\n📅 *Data:* {data}\n⏰ *Horário:* {hora}"
-            link_whatsapp = f"https://api.whatsapp.com/send?phone={NUMERO_WHATSAPP_ADMIN}&text={quote(mensagem)}"
+            link_whatsapp = f"https://api.whatsapp.com/send?phone={numero_whatsapp_admin}&text={quote(mensagem)}"
 
+            conn.close()
             return render_template('booking_sucesso.html', nome=nome, link_whatsapp=link_whatsapp)
 
     conn.close()
@@ -156,13 +168,51 @@ def admin():
     agendamentos = conn.execute('SELECT * FROM agendamentos ORDER BY id DESC').fetchall()
     servicos = conn.execute('SELECT * FROM servicos').fetchall()
     horarios = conn.execute('SELECT * FROM horarios_config ORDER BY hora ASC').fetchall()
+    whatsapp_config = conn.execute("SELECT valor FROM config WHERE chave = 'whatsapp_admin'").fetchone()
     conn.close()
     
+    numero_whatsapp = whatsapp_config['valor'] if whatsapp_config else ''
+
     return render_template('admin.html', 
                            agendamentos=agendamentos, 
                            servicos=servicos, 
                            horarios=horarios, 
+                           numero_whatsapp=numero_whatsapp,
                            username=session.get('username'))
+
+@app.route('/admin/adicionar-servico', methods=['POST'])
+def adicionar_servico():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    nome_servico = request.form.get('nome_servico').strip()
+    preco_servico = request.form.get('preco_servico')
+
+    if nome_servico and preco_servico:
+        conn = get_db_connection()
+        try:
+            conn.execute('INSERT INTO servicos (nome, preco) VALUES (?, ?)', (nome_servico, float(preco_servico)))
+            conn.commit()
+            flash('Novo serviço adicionado com sucesso!', 'success')
+        except sqlite3.IntegrityError:
+            flash('Um serviço com esse nome já existe.', 'danger')
+        finally:
+            conn.close()
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/remover-servico/<int:servico_id>', methods=['POST'])
+def remover_servico(servico_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    conn.execute('DELETE FROM servicos WHERE id = ?', (servico_id,))
+    conn.commit()
+    conn.close()
+    flash('Serviço removido com sucesso!', 'success')
+
+    return redirect(url_for('admin'))
 
 @app.route('/admin/atualizar-preco', methods=['POST'])
 def atualizar_preco():
@@ -178,6 +228,21 @@ def atualizar_preco():
         conn.commit()
         conn.close()
         flash('Preço do serviço atualizado com sucesso!', 'success')
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/atualizar-whatsapp', methods=['POST'])
+def atualizar_whatsapp():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    novo_whatsapp = request.form.get('novo_whatsapp').strip()
+    if novo_whatsapp:
+        conn = get_db_connection()
+        conn.execute("INSERT OR REPLACE INTO config (id, chave, valor) VALUES ((SELECT id FROM config WHERE chave='whatsapp_admin'), 'whatsapp_admin', ?)", (novo_whatsapp,))
+        conn.commit()
+        conn.close()
+        flash('Número do WhatsApp do administrador atualizado com sucesso!', 'success')
 
     return redirect(url_for('admin'))
 
