@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Painel de Agendamentos</h2>
+{% if agendamentos %}
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Telefone</th>
+            <th>Serviço</th>
+            <th>Data</th>
+            <th>Hora</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in agendamentos %}
+        <tr>
+            <td>{{ a['id'] }}</td>
+            <td>{{ a['nome'] }}</td>
+            <td>{{ a['telefone'] }}</td>
+            <td>{{ a['servico'] }}</td>
+            <td>{{ a['data'] }}</td>
+            <td>{{ a['hora'] }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>Nenhum agendamento registado até ao momento.</p>
+{% endif %}
+{% endblock %}

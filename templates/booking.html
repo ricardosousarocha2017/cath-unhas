@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Agendar Horário</h2>
+<form action="{{ url_for('booking') }}" method="POST" class="form-group">
+    <label for="nome">Nome Completo:</label>
+    <input type="text" id="nome" name="nome" required>
+
+    <label for="telefone">Telefone / WhatsApp:</label>
+    <input type="tel" id="telefone" name="telefone" required>
+
+    <label for="servico">Serviço Pretendido:</label>
+    <select id="servico" name="servico" required>
+        <option value="Manicure">Manicure Simples</option>
+        <option value="Pedicure">Pedicure Simples</option>
+        <option value="Combo Manicure + Pedicure">Combo Manicure + Pedicure</option>
+        <option value="Alongamento em Gel">Alongamento em Gel</option>
+        <option value="Manutenção de Gel">Manutenção de Gel</option>
+    </select>
+
+    <label for="data">Data:</label>
+    <input type="date" id="data" name="data" required>
+
+    <label for="hora">Horário:</label>
+    <input type="time" id="hora" name="hora" required>
+
+    <button type="submit" class="btn">Confirmar Agendamento</button>
+</form>
+{% endblock %}
