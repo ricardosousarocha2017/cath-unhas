@@ -1,7 +1,7 @@
-# Cath Unhas - Edição com Gestão Completa de Serviços e WhatsApp
+# Cath Unhas - Edição Luxo & Gestão Avançada
 
-Recursos adicionados nesta versão:
-1. Envio automático de confirmação de agendamento diretamente para o WhatsApp do Administrador.
-2. Inclusão e exclusão de novos serviços no Painel Administrativo.
-3. Configuração do número do WhatsApp da Admin diretamente pelo painel.
-4. Alteração de preços, restrição de horários e alteração de senha do admin.
+Aplicação completa de Nail Studio em Flask:
+- Design Estético Premium com Imagens de Galeria dos trabalhos reais.
+- Notificação de agendamentos no WhatsApp do Admin sem expor o número aos clientes.
+- Relatórios Gerenciais e Estatísticas de Faturamento e Atendimentos.
+- Cadastro e Gestão de Serviços, Preços e Restrição de Horários pelo Admin.

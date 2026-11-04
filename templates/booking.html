@@ -1,25 +1,25 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="form-container">
-    <h2>🗓️ Agende o Seu Atendimento</h2>
-    <p class="subtitle">Escolha o serviço desejado e o horário disponível.</p>
+<div class="form-container-luxury">
+    <h2>🗓️ Agendamento Exclusivo</h2>
+    <p class="subtitle">Selecione o procedimento de sua preferência e um dos horários disponíveis.</p>
 
     <form action="{{ url_for('booking') }}" method="POST">
         <div class="form-group">
             <label for="nome">Nome Completo:</label>
-            <input type="text" id="nome" name="nome" placeholder="Ex: Maria Silva" required>
+            <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
         </div>
 
         <div class="form-group">
-            <label for="telefone">WhatsApp / Telefone:</label>
+            <label for="telefone">WhatsApp para Contato:</label>
             <input type="tel" id="telefone" name="telefone" placeholder="(11) 99999-9999" required>
         </div>
 
         <div class="form-group">
-            <label for="servico_id">Escolha o Procedimento:</label>
+            <label for="servico_id">Procedimento Desejado:</label>
             <select id="servico_id" name="servico_id" required>
-                <option value="" disabled selected>Selecione um serviço...</option>
+                <option value="" disabled selected>Selecione um procedimento...</option>
                 {% for s in servicos %}
                     <option value="{{ s['id'] }}">{{ s['nome'] }} — R$ {{ "%.2f"|format(s['preco']) }}</option>
                 {% endfor %}
@@ -28,7 +28,7 @@
 
         <div class="form-row">
             <div class="form-group">
-                <label for="data">Data Desejada:</label>
+                <label for="data">Data Atendimento:</label>
                 <input type="date" id="data" name="data" required>
             </div>
             <div class="form-group">
@@ -42,7 +42,7 @@
             </div>
         </div>
 
-        <button type="submit" class="btn-primary full-width">Confirmar Agendamento</button>
+        <button type="submit" class="btn-primary-gold full-width">Finalizar Agendamento</button>
     </form>
 </div>
 {% endblock %}

@@ -1,18 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="form-container text-center">
-    <div class="success-icon">🎉</div>
-    <h2>Agendamento Registrado!</h2>
-    <p>Obrigado, <strong>{{ nome }}</strong>. O seu atendimento foi reservado com sucesso!</p>
+<div class="form-container-luxury text-center">
+    <div class="success-crown">👑</div>
+    <h2>Agendamento Confirmado!</h2>
+    <p class="lead-msg">Obrigado, <strong>{{ nome }}</strong>! A sua solicitação foi recebida com sucesso no nosso sistema.</p>
     
-    <div class="whatsapp-box">
-        <p>📲 <strong>Envio Obrigatório para a Cath no WhatsApp:</strong></p>
-        <p>Clique no botão abaixo para enviar os detalhes do seu agendamento direto para o WhatsApp da Cath!</p>
-        <a href="{{ link_whatsapp }}" target="_blank" class="btn-whatsapp">💬 Enviar Agendamento no WhatsApp</a>
+    <div class="confirmation-details">
+        <div class="detail-item"><strong>Serviço:</strong> {{ servico }}</div>
+        <div class="detail-item"><strong>Data:</strong> {{ data }}</div>
+        <div class="detail-item"><strong>Horário:</strong> {{ hora }}</div>
     </div>
 
+    <p class="privacy-note">🔒 <em>A administração do studio foi notificada e entrará em contato com você via WhatsApp caso precise ajustar detalhes.</em></p>
+
     <br>
-    <a href="{{ url_for('home') }}" class="link-voltar">← Voltar para a página inicial</a>
+    <a href="{{ url_for('home') }}" class="btn-card">← Voltar para a Página Inicial</a>
 </div>
 {% endblock %}
