@@ -1,33 +1,63 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Painel de Agendamentos</h2>
-{% if agendamentos %}
-<table>
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nome</th>
-            <th>Telefone</th>
-            <th>Serviço</th>
-            <th>Data</th>
-            <th>Hora</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for a in agendamentos %}
-        <tr>
-            <td>{{ a['id'] }}</td>
-            <td>{{ a['nome'] }}</td>
-            <td>{{ a['telefone'] }}</td>
-            <td>{{ a['servico'] }}</td>
-            <td>{{ a['data'] }}</td>
-            <td>{{ a['hora'] }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
-{% else %}
-<p>Nenhum agendamento registado até ao momento.</p>
-{% endif %}
+<div class="admin-header">
+    <h2>⚙️ Painel do Administrador</h2>
+    <p>Bem-vinda, <strong>{{ username }}</strong>!</p>
+</div>
+
+<!-- Form de Troca de Usuário e Senha -->
+<div class="admin-card">
+    <h3>🔑 Alterar Usuário e Senha de Acesso</h3>
+    <form action="{{ url_for('alterar_senha') }}" method="POST" class="form-inline">
+        <div class="form-group">
+            <label for="novo_usuario">Novo Usuário:</label>
+            <input type="text" id="novo_usuario" name="novo_usuario" value="{{ username }}" required>
+        </div>
+        <div class="form-group">
+            <label for="nova_senha">Nova Senha:</label>
+            <input type="password" id="nova_senha" name="nova_senha" placeholder="Nova Senha" required>
+        </div>
+        <button type="submit" class="btn-secondary">Atualizar Acesso</button>
+    </form>
+</div>
+
+<!-- Tabela de Agendamentos -->
+<div class="admin-card">
+    <h3>📅 Agendamentos Recebidos</h3>
+    {% if agendamentos %}
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Contato</th>
+                    <th>Serviço</th>
+                    <th>Data</th>
+                    <th>Hora</th>
+                    <th>Ação WhatsApp</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in agendamentos %}
+                <tr>
+                    <td>{{ a['id'] }}</td>
+                    <td><strong>{{ a['nome'] }}</strong></td>
+                    <td>{{ a['telefone'] }}</td>
+                    <td><span class="tag">{{ a['servico'] }}</span></td>
+                    <td>{{ a['data'] }}</td>
+                    <td>{{ a['hora'] }}</td>
+                    <td>
+                        <a href="https://api.whatsapp.com/send?phone=55{{ a['telefone'] | replace(' ', '') | replace('-', '') | replace('(', '') | replace(')', '') }}&text=Olá%20{{ a['nome'] }},%20sou%20a%20Cath!%20Confirmo%20seu%20agendamento%20para%20{{ a['data'] }}%20às%20{{ a['hora'] }}." target="_blank" class="btn-sm-whatsapp">💬 Falar com Cliente</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="empty-msg">Nenhum agendamento registado até ao momento.</p>
+    {% endif %}
+</div>
 {% endblock %}

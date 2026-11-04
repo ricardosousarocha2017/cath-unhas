@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="form-container text-center">
+    <div class="success-icon">🎉</div>
+    <h2>Agendamento Registrado com Sucesso!</h2>
+    <p>Obrigado, <strong>{{ nome }}</strong>. O seu pedido de agendamento já está registado no nosso sistema.</p>
+    
+    <div class="whatsapp-box">
+        <p>📲 <strong>Aviso pelo WhatsApp:</strong></p>
+        <p>Clique no botão abaixo para avisar diretamente a Cath no WhatsApp e confirmar o seu horário instantaneamente!</p>
+        <a href="{{ link_whatsapp }}" target="_blank" class="btn-whatsapp">💬 Avisar Cath no WhatsApp</a>
+    </div>
+
+    <br>
+    <a href="{{ url_for('home') }}" class="link-voltar">← Voltar para a página inicial</a>
+</div>
+{% endblock %}

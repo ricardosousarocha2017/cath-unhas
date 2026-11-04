@@ -1,21 +1,41 @@
 <!DOCTYPE html>
-<html lang="pt">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cath Unhas</title>
+    <title>Cath Unhas - Studio de Beleza</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
+    <header class="navbar">
+        <div class="logo">✨ Cath Unhas</div>
         <nav>
-            <a href="{{ url_for('home') }}">Início</a> | 
-            <a href="{{ url_for('booking') }}">Agendar</a> | 
-            <a href="{{ url_for('login') }}">Área Administrativa</a>
+            <a href="{{ url_for('home') }}">Início</a>
+            <a href="{{ url_for('booking') }}">Agendar</a>
+            {% if session.get('logged_in') %}
+                <a href="{{ url_for('admin') }}">Painel Admin</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout">Sair</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Área Restrita</a>
+            {% endif %}
         </nav>
     </header>
-    <main>
+
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         {% block content %}{% endblock %}
-    </main>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Cath Unhas Studio - Todos os direitos reservados.</p>
+    </footer>
 </body>
 </html>

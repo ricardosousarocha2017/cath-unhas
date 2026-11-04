@@ -1,9 +1,27 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="hero">
-    <h1>Bem-vinda ao Cath Unhas</h1>
-    <p>Cuide da beleza e saúde das suas unhas com atendimento exclusivo.</p>
-    <a href="{{ url_for('booking') }}" class="btn">Fazer Agendamento</a>
+<section class="hero-card">
+    <div class="hero-text">
+        <span class="badge">Especialista em Nail Art & Gel</span>
+        <h1>Realce a Beleza e Elegância das Suas Unhas</h1>
+        <p>Atendimento exclusivo, materiais esterilizados e as melhores técnicas de alongamento e esmaltação.</p>
+        <a href="{{ url_for('booking') }}" class="btn-primary">🗓️ Agendar Meu Horário</a>
+    </div>
+</section>
+
+<section class="services-grid">
+    <div class="service-card">
+        <h3>💅 Esmaltação em Gel</h3>
+        <p>Brilho intenso e durabilidade de até 20 dias sem descascar.</p>
+    </div>
+    <div class="service-card">
+        <h3>✨ Alongamento Fibra/Gel</h3>
+        <p>Unhas impecáveis, com aspeto natural e alta resistência.</p>
+    </div>
+    <div class="service-card">
+        <h3>🌸 Manicure & Pedicure</h3>
+        <p>Cuidado completo com cutilagem funda, hidratação e esmaltação perfeita.</p>
+    </div>
 </section>
 {% endblock %}

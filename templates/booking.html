@@ -1,29 +1,46 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Agendar Horário</h2>
-<form action="{{ url_for('booking') }}" method="POST" class="form-group">
-    <label for="nome">Nome Completo:</label>
-    <input type="text" id="nome" name="nome" required>
+<div class="form-container">
+    <h2>🗓️ Agende o Seu Atendimento</h2>
+    <p class="subtitle">Preencha os seus dados abaixo para reservar o seu horário no studio.</p>
 
-    <label for="telefone">Telefone / WhatsApp:</label>
-    <input type="tel" id="telefone" name="telefone" required>
+    <form action="{{ url_for('booking') }}" method="POST">
+        <div class="form-group">
+            <label for="nome">Nome Completo:</label>
+            <input type="text" id="nome" name="nome" placeholder="Ex: Maria Silva" required>
+        </div>
 
-    <label for="servico">Serviço Pretendido:</label>
-    <select id="servico" name="servico" required>
-        <option value="Manicure">Manicure Simples</option>
-        <option value="Pedicure">Pedicure Simples</option>
-        <option value="Combo Manicure + Pedicure">Combo Manicure + Pedicure</option>
-        <option value="Alongamento em Gel">Alongamento em Gel</option>
-        <option value="Manutenção de Gel">Manutenção de Gel</option>
-    </select>
+        <div class="form-group">
+            <label for="telefone">WhatsApp / Telefone:</label>
+            <input type="tel" id="telefone" name="telefone" placeholder="(11) 99999-9999" required>
+        </div>
 
-    <label for="data">Data:</label>
-    <input type="date" id="data" name="data" required>
+        <div class="form-group">
+            <label for="servico">Escolha o Serviço:</label>
+            <select id="servico" name="servico" required>
+                <option value="" disabled selected>Selecione um procedimento...</option>
+                <option value="Manicure Simples">Manicure Simples</option>
+                <option value="Pedicure Simples">Pedicure Simples</option>
+                <option value="Combo Manicure + Pedicure">Combo Manicure + Pedicure</option>
+                <option value="Alongamento em Gel/Fibra">Alongamento em Gel / Fibra de Vidro</option>
+                <option value="Manutenção de Gel">Manutenção de Gel</option>
+                <option value="Esmaltação em Gel">Esmaltação em Gel</option>
+            </select>
+        </div>
 
-    <label for="hora">Horário:</label>
-    <input type="time" id="hora" name="hora" required>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="data">Data Desejada:</label>
+                <input type="date" id="data" name="data" required>
+            </div>
+            <div class="form-group">
+                <label for="hora">Horário:</label>
+                <input type="time" id="hora" name="hora" required>
+            </div>
+        </div>
 
-    <button type="submit" class="btn">Confirmar Agendamento</button>
-</form>
+        <button type="submit" class="btn-primary full-width">Confirmar Agendamento</button>
+    </form>
+</div>
 {% endblock %}

@@ -1,9 +1,9 @@
-# Cath Unhas - Aplicação Web
+# Cath Unhas - Edição Profissional
 
-Projeto Flask pronto para hospedagem no Render.
+Aplicação Flask para gestão de agendamentos de unhas com painel administrativo e avisos por WhatsApp.
 
-## Ficheiros do Projeto
-- `app.py`: Aplicação Flask com configuração dinâmica de porta e inicialização automática da base de dados SQLite.
-- `requirements.txt`: Dependências do projeto (Flask + gunicorn).
-- `templates/`: Páginas HTML (base, home, booking, login, admin).
-- `static/`: Ficheiros estáticos (style.css).
+## Recursos
+- Design moderno e responsivo em tom Rosa/Gold
+- Notificação automática do agendamento direto para o WhatsApp da Cath
+- Painel Administrativo com alteração de Usuário e Senha segura (criptografia Hash)
+- Pronto para hospedagem gratuita no Render
