@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="admin-title-bar">
-    <h2>📊 Painel de Faturamento & Disparo Automático</h2>
+    <h2>📊 Painel Executivo & Notificações Automáticas</h2>
     <p>Bem-vinda, <strong>{{ username }}</strong>!</p>
 </div>
 
@@ -31,57 +31,62 @@
     </div>
 </div>
 
-<!-- Configuração de Disparo AUTOMÁTICO de WhatsApp & SMS -->
+<!-- Configurar Automações de Disparo sem Acessar o Site -->
 <div class="admin-section-box">
-    <h3>⚡ Configurar Disparo AUTOMÁTICO (WhatsApp & SMS)</h3>
-    <p class="form-subtext">Defina os seus números e chaves de API abaixo para receber alertas instantâneos no seu telemóvel assim que o cliente agendar, sem precisar abrir o site.</p>
+    <h3>⚡ Configurar Automação do WhatsApp e SMS no Telemóvel</h3>
+    <p class="form-subtext">Preencha os dados de conexão para que o servidor notifique o seu telemóvel instantaneamente sem que precise de abrir o site.</p>
     
     <form action="{{ url_for('atualizar_config_api') }}" method="POST" class="form-flex-column">
         <div class="form-row">
             <div class="form-group">
-                <label>Seu WhatsApp (Ex: 5511999999999):</label>
-                <input type="text" name="whatsapp_admin" value="{{ configs.get('whatsapp_admin', '') }}" placeholder="5511999999999">
+                <label>Seu WhatsApp (Ex: 5511993947608):</label>
+                <input type="text" name="whatsapp_admin" value="{{ configs.get('whatsapp_admin', '') }}" placeholder="5511993947608" required>
             </div>
             <div class="form-group">
-                <label>Seu SMS (Ex: 11999999999):</label>
-                <input type="text" name="sms_admin" value="{{ configs.get('sms_admin', '') }}" placeholder="11999999999">
-            </div>
-        </div>
-
-        <h4 class="sub-heading">Configurações Avançadas de API (Opcional para automação server-side)</h4>
-        <div class="form-row">
-            <div class="form-group">
-                <label>URL Gateway WhatsApp API (Z-API / Evolution / Webhook):</label>
-                <input type="text" name="whatsapp_api_url" value="{{ configs.get('whatsapp_api_url', '') }}" placeholder="https://api.z-api.io/instances/SUA_INSTANCIA/token/send-messages">
-            </div>
-            <div class="form-group">
-                <label>Token / API Key WhatsApp:</label>
-                <input type="text" name="whatsapp_api_token" value="{{ configs.get('whatsapp_api_token', '') }}" placeholder="Sua Chave API / CallMeBot Key">
+                <label>Chave API Gratuita CallMeBot (Para WhatsApp Direto):</label>
+                <input type="text" name="callmebot_apikey" value="{{ configs.get('callmebot_apikey', '') }}" placeholder="Obtenha no site callmebot.com">
             </div>
         </div>
 
+        <h4 class="sub-heading">Ou use seu Gateway Webhook (Z-API / Evolution API)</h4>
         <div class="form-row">
             <div class="form-group">
-                <label>Twilio Account SID (SMS Automático):</label>
-                <input type="text" name="twilio_account_sid" value="{{ configs.get('twilio_account_sid', '') }}" placeholder="ACXXXXXXXXXXXXXXXXX">
+                <label>URL Gateway WhatsApp API:</label>
+                <input type="text" name="whatsapp_api_url" value="{{ configs.get('whatsapp_api_url', '') }}" placeholder="https://api.z-api.io/...">
+            </div>
+            <div class="form-group">
+                <label>Token da API:</label>
+                <input type="text" name="whatsapp_api_token" value="{{ configs.get('whatsapp_api_token', '') }}" placeholder="Seu Token">
+            </div>
+        </div>
+
+        <h4 class="sub-heading">Configuração de SMS Automático (Twilio)</h4>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Seu Número SMS (Ex: 11993947608):</label>
+                <input type="text" name="sms_admin" value="{{ configs.get('sms_admin', '') }}" placeholder="11993947608">
+            </div>
+            <div class="form-group">
+                <label>Twilio Account SID:</label>
+                <input type="text" name="twilio_account_sid" value="{{ configs.get('twilio_account_sid', '') }}" placeholder="ACXXXXXXXXX">
             </div>
             <div class="form-group">
                 <label>Twilio Auth Token:</label>
-                <input type="password" name="twilio_auth_token" value="{{ configs.get('twilio_auth_token', '') }}" placeholder="Token Twilio">
+                <input type="password" name="twilio_auth_token" value="{{ configs.get('twilio_auth_token', '') }}">
             </div>
             <div class="form-group">
                 <label>Twilio Phone Number:</label>
-                <input type="text" name="twilio_phone_number" value="{{ configs.get('twilio_phone_number', '') }}" placeholder="+1234567890">
+                <input type="text" name="twilio_phone_number" value="{{ configs.get('twilio_phone_number', '') }}" placeholder="+123456789">
             </div>
         </div>
 
-        <button type="submit" class="btn-dark">💾 Salvar Configurações de Automação</button>
+        <button type="submit" class="btn-dark">💾 Salvar Automações</button>
     </form>
 </div>
 
-<!-- Relatório de Faturamento por Procedimento -->
+<!-- Relatório Gerencial -->
 <div class="admin-section-box">
-    <h3>📈 Relatório Gerencial de Vendas</h3>
+    <h3>📈 Relatório Gerencial de Vendas por Serviço</h3>
     {% if relatorio_servicos %}
     <div class="table-container">
         <table class="custom-table">
@@ -106,7 +111,54 @@
     {% endif %}
 </div>
 
-<!-- Tabela de Agendamentos Recebidos -->
+<!-- Serviços e Preços com Fotos -->
+<div class="admin-section-box">
+    <h3>➕ Cadastrar Novo Serviço com Imagem da Vitrine</h3>
+    <form action="{{ url_for('adicionar_servico') }}" method="POST" class="form-flex margin-bottom">
+        <div class="form-group flex-2">
+            <label>Nome do Serviço:</label>
+            <input type="text" name="nome_servico" placeholder="Ex: Encapsulada Luxo" required>
+        </div>
+        <div class="form-group flex-1">
+            <label>Preço (R$):</label>
+            <input type="number" step="0.01" name="preco_servico" placeholder="140.00" required>
+        </div>
+        <div class="form-group flex-2">
+            <label>Foto da Galeria:</label>
+            <select name="imagem_servico">
+                <option value="img_brasil.jpeg">Foto 1 - Nail Art Brasil</option>
+                <option value="img_gel.jpeg">Foto 2 - Banho de Gel Nude</option>
+                <option value="img_coracoes.jpeg">Foto 3 - Corações Vermelhos</option>
+                <option value="img_silver.jpeg">Foto 4 - Stiletto Prata</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-gold-action btn-sm">+ Cadastrar</button>
+    </form>
+
+    <hr class="separator">
+
+    <h3>💰 Gerenciar Serviços & Preços Existentes</h3>
+    <div class="services-admin-grid">
+        {% for s in servicos %}
+        <div class="service-admin-card">
+            <div class="thumb-mini">
+                <img src="{{ url_for('static', filename='images/' + s['imagem']) }}" alt="{{ s['nome'] }}">
+            </div>
+            <form action="{{ url_for('atualizar_preco') }}" method="POST" class="form-flex-sm">
+                <input type="hidden" name="servico_id" value="{{ s['id'] }}">
+                <span class="serv-title">{{ s['nome'] }}</span>
+                <input type="number" step="0.01" name="novo_preco" value="{{ "%.2f"|format(s['preco']) }}" required>
+                <button type="submit" class="btn-dark btn-sm">Salvar</button>
+            </form>
+            <form action="{{ url_for('remover_servico', servico_id=s['id']) }}" method="POST" onsubmit="return confirm('Excluir este serviço?');" class="margin-top-xs">
+                <button type="submit" class="btn-danger btn-sm">Excluir</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Tabela de Agendamentos -->
 <div class="admin-section-box">
     <h3>📋 Histórico de Agendamentos Registados</h3>
     {% if agendamentos %}

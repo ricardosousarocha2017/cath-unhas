@@ -4,14 +4,14 @@
 <section class="hero-executive">
     <div class="hero-backdrop"></div>
     <div class="hero-inner">
-        <span class="luxury-tag">Agendamento Inteligente 24/7</span>
+        <span class="luxury-tag">Nail Design & Alta Perfomance</span>
         <h1>Sua Imagem Merece Unhas de Luxo</h1>
-        <p>Especialista em Molde F1 e Banho de Gel com acabamento impecável e alta durabilidade.</p>
+        <p>Especialista em Molde F1 e Banho de Gel com acabamento impecável, máxima durabilidade e elegância.</p>
         <a href="{{ url_for('booking') }}" class="btn-gold-action">👑 Agendar Meu Horário Agora</a>
     </div>
 </section>
 
-<h2 class="section-title">Procedimentos em Destaque</h2>
+<h2 class="section-title">Procedimentos Exclusivos</h2>
 <section class="services-luxury-grid">
     {% for s in servicos %}
     <div class="service-card-executive">
@@ -25,5 +25,27 @@
         </div>
     </div>
     {% endfor %}
+</section>
+
+<section class="portfolio-section">
+    <h2 class="section-title">Portfólio de Trabalhos Reais</h2>
+    <div class="portfolio-grid">
+        <div class="portfolio-item">
+            <img src="{{ url_for('static', filename='images/img_brasil.jpeg') }}" alt="Nail Art Brasil">
+            <div class="portfolio-caption">Nail Art Brasil & Pedrarias</div>
+        </div>
+        <div class="portfolio-item">
+            <img src="{{ url_for('static', filename='images/img_gel.jpeg') }}" alt="Banho de Gel Nude">
+            <div class="portfolio-caption">Banho de Gel Nude Luxo</div>
+        </div>
+        <div class="portfolio-item">
+            <img src="{{ url_for('static', filename='images/img_coracoes.jpeg') }}" alt="Corações Vermelhos">
+            <div class="portfolio-caption">Nail Art Romântica Corações</div>
+        </div>
+        <div class="portfolio-item">
+            <img src="{{ url_for('static', filename='images/img_silver.jpeg') }}" alt="Alongamento Stiletto">
+            <div class="portfolio-caption">Alongamento Stiletto Prata</div>
+        </div>
+    </div>
 </section>
 {% endblock %}

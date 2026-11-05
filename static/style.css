@@ -69,6 +69,7 @@ h1, h2, h3, .logo {
 .alert-success { background: #e2f0d9; color: #2d572c; border: 1px solid #b8e0a8; }
 .alert-danger { background: #fce4e4; color: #842029; border: 1px solid #f7b7b7; }
 
+/* Hero Section com Imagem e Overlay Luxo */
 .hero-executive {
     position: relative;
     background: url('/static/images/img_brasil.jpeg') center/cover no-repeat;
@@ -193,6 +194,47 @@ h1, h2, h3, .logo {
     font-weight: 600;
 }
 
+/* Portfolio Section */
+.portfolio-section {
+    margin: 4rem 0;
+}
+
+.portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+}
+
+.portfolio-item {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    height: 270px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+
+.portfolio-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s;
+}
+
+.portfolio-item:hover img {
+    transform: scale(1.08);
+}
+
+.portfolio-caption {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(31, 17, 24, 0.9));
+    color: white;
+    padding: 1rem;
+    font-size: 0.85rem;
+    text-align: center;
+}
+
+/* Form Container */
 .glass-form-container {
     background: white;
     padding: 3rem;
@@ -351,6 +393,52 @@ h1, h2, h3, .logo {
     cursor: pointer;
     font-weight: 600;
 }
+
+.services-admin-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.2rem;
+    margin-top: 1rem;
+}
+
+.service-admin-card {
+    background: #fdf5f9;
+    padding: 1.2rem;
+    border-radius: 14px;
+    border: 1px solid #efe3e8;
+}
+
+.thumb-mini {
+    height: 110px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 0.8rem;
+}
+
+.thumb-mini img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.form-flex-sm {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.serv-title { font-weight: 700; color: #1f1118; }
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.btn-sm { padding: 8px 14px; font-size: 0.85rem; }
 
 .badge-executive {
     background: #f7e8ef;

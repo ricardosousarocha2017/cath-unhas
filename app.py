@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_secreta_2026_auto_dispatch')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_secreta_2026_auto_v5')
 
 DB_NAME = 'database.db'
 
@@ -19,7 +19,7 @@ def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Tabela de Agendamentos
+    # Agendamentos
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS agendamentos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,7 +33,7 @@ def init_db():
         )
     ''')
     
-    # Tabela de Serviços e Preços
+    # Serviços e Preços
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS servicos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,7 +52,7 @@ def init_db():
         )
     ''')
     
-    # Configurações de Notificação Automática (API WhatsApp, Twilio, Webhook)
+    # Configurações do Sistema e Apis
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS config (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,20 +70,21 @@ def init_db():
         )
     ''')
 
-    # Configurações padrão
+    # Configurações iniciais
     configs_iniciais = [
-        ('whatsapp_admin', '5511999999999'),
-        ('sms_admin', '11999999999'),
-        ('whatsapp_api_url', ''),      # URL da API de WhatsApp (ex: Z-API, Evolution API ou CallMeBot)
-        ('whatsapp_api_token', ''),    # Token / Chave da API de WhatsApp
-        ('twilio_account_sid', ''),    # SID da conta Twilio para SMS automático
-        ('twilio_auth_token', ''),     # Token da conta Twilio para SMS
-        ('twilio_phone_number', '')    # Número de envio Twilio
+        ('whatsapp_admin', '5511993947608'),
+        ('sms_admin', '11993947608'),
+        ('callmebot_apikey', ''),       # Chave da API gratuita do CallMeBot para WhatsApp
+        ('whatsapp_api_url', ''),      # URL Webhook Z-API / Evolution
+        ('whatsapp_api_token', ''),
+        ('twilio_account_sid', ''),
+        ('twilio_auth_token', ''),
+        ('twilio_phone_number', '')
     ]
     for c_chave, c_val in configs_iniciais:
         cursor.execute('INSERT OR IGNORE INTO config (chave, valor) VALUES (?, ?)', (c_chave, c_val))
 
-    # Serviços Iniciais
+    # Serviços Iniciais vinculados às imagens fornecidas
     servicos_iniciais = [
         ('Alongamento Molde F1', 150.00, 'img_brasil.jpeg'),
         ('Manutenção de Molde F1', 90.00, 'img_gel.jpeg'),
@@ -109,57 +110,54 @@ def init_db():
 
 init_db()
 
-def disparar_notificacoes_automaticas(nome, telefone, servico, preco, data, hora):
-    """Envia automaticamente Notificações de WhatsApp e SMS no momento exato do agendamento sem ação do admin."""
+def enviar_notificacoes_automaticas(nome, telefone, servico, preco, data, hora):
+    """Dispara a notificação automática para o telemóvel do Administrador no momento exato do agendamento."""
     conn = get_db_connection()
     configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
     conn.close()
 
-    whatsapp_admin = configs.get('whatsapp_admin', '')
-    sms_admin = configs.get('sms_admin', '')
-    
-    msg_texto = f"💅 *NOVO AGENDAMENTO AUTOMÁTICO - Cath Unhas*\n\n👤 *Cliente:* {nome}\n📞 *Telefone:* {telefone}\n✨ *Serviço:* {servico}\n💰 *Valor:* R$ {preco:.2f}\n📅 *Data:* {data}\n⏰ *Horário:* {hora}"
-
-    # 1. Envio Automático por WhatsApp via CallMeBot / Gateway Webhook / Z-API
+    wa_number = configs.get('whatsapp_admin', '').strip()
+    callmebot_key = configs.get('callmebot_apikey', '').strip()
     wa_api_url = configs.get('whatsapp_api_url', '').strip()
     wa_api_token = configs.get('whatsapp_api_token', '').strip()
 
-    if wa_api_url:
-        try:
-            # Exemplo de integração universal via HTTP POST / GET
-            payload = {
-                'phone': whatsapp_admin,
-                'message': msg_texto,
-                'apikey': wa_api_token
-            }
-            requests.post(wa_api_url, json=payload, timeout=5)
-        except Exception as e:
-            print(f"Erro ao enviar WhatsApp automático: {e}")
-    elif whatsapp_admin:
-        # Integração gratuita automática via API Pública CallMeBot (WhatsApp)
-        try:
-            callmebot_url = f"https://api.callmebot.com/whatsapp.php?phone={whatsapp_admin}&text={quote(msg_texto)}&apikey={wa_api_token}"
-            requests.get(callmebot_url, timeout=5)
-        except Exception as e:
-            print(f"Erro no envio CallMeBot WhatsApp: {e}")
+    msg = f"💅 *NOVO AGENDAMENTO - Cath Unhas*\n\n👤 *Cliente:* {nome}\n📞 *Telefone:* {telefone}\n✨ *Serviço:* {servico}\n💰 *Valor:* R$ {preco:.2f}\n📅 *Data:* {data}\n⏰ *Horário:* {hora}"
 
-    # 2. Envio Automático por SMS via Twilio API
+    # 1. Envio WhatsApp Automático via Z-API / Evolution / Webhook
+    if wa_api_url and wa_number:
+        try:
+            payload = {'phone': wa_number, 'message': msg}
+            headers = {'Authorization': f'Bearer {wa_api_token}'} if wa_api_token else {}
+            requests.post(wa_api_url, json=payload, headers=headers, timeout=4)
+        except Exception as e:
+            print(f"Erro Webhook WhatsApp: {e}")
+
+    # 2. Envio WhatsApp Automático Gratuito via CallMeBot API (com apikey cadastrada)
+    elif wa_number and callmebot_key:
+        try:
+            url_callmebot = f"https://api.callmebot.com/whatsapp.php?phone={wa_number}&text={quote(msg)}&apikey={callmebot_key}"
+            requests.get(url_callmebot, timeout=5)
+        except Exception as e:
+            print(f"Erro CallMeBot WhatsApp: {e}")
+
+    # 3. Envio SMS Automático via Twilio API
     twilio_sid = configs.get('twilio_account_sid', '').strip()
     twilio_token = configs.get('twilio_auth_token', '').strip()
     twilio_from = configs.get('twilio_phone_number', '').strip()
+    sms_admin = configs.get('sms_admin', '').strip()
 
     if twilio_sid and twilio_token and twilio_from and sms_admin:
         try:
-            sms_body = f"Cath Unhas: Novo Agendamento de {nome} - {servico} em {data} as {hora}. R$ {preco:.2f}"
+            sms_body = f"Cath Unhas: Novo Agendamento - {nome} ({servico}) em {data} as {hora}. R$ {preco:.2f}"
             twilio_url = f"https://api.twilio.com/2010-04-01/Accounts/{twilio_sid}/Messages.json"
             requests.post(
                 twilio_url,
                 data={'From': twilio_from, 'To': f"+55{sms_admin}", 'Body': sms_body},
                 auth=(twilio_sid, twilio_token),
-                timeout=5
+                timeout=4
             )
         except Exception as e:
-            print(f"Erro ao enviar SMS via Twilio: {e}")
+            print(f"Erro SMS Twilio: {e}")
 
 @app.route('/')
 def home():
@@ -189,10 +187,10 @@ def booking():
                 (nome, telefone, servico['nome'], servico['preco'], data, hora)
             )
             conn.commit()
-            conn.close()
 
-            # DISPARO AUTOMÁTICO DE NOTIFICAÇÕES (SEM NECESSIDADE DE ACESSAR O SITE)
-            disparar_notificacoes_automaticas(nome, telefone, servico['nome'], servico['preco'], data, hora)
+            # Executa o disparo automático no momento exato
+            enviar_notificacoes_automaticas(nome, telefone, servico['nome'], servico['preco'], data, hora)
+            conn.close()
 
             return render_template('booking_sucesso.html', nome=nome, servico=servico['nome'], data=data, hora=hora, preco=servico['preco'])
 
@@ -229,15 +227,12 @@ def admin():
     agendamentos = conn.execute('SELECT * FROM agendamentos ORDER BY id DESC').fetchall()
     servicos = conn.execute('SELECT * FROM servicos').fetchall()
     horarios = conn.execute('SELECT * FROM horarios_config ORDER BY hora ASC').fetchall()
-    
     configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
 
-    # Métricas Financeiras
     total_faturamento = conn.execute("SELECT SUM(preco) FROM agendamentos").fetchone()[0] or 0.0
     total_atendimentos = len(agendamentos)
     ticket_medio = (total_faturamento / total_atendimentos) if total_atendimentos > 0 else 0.0
 
-    # Relatório por Serviço
     relatorio_servicos = conn.execute('''
         SELECT servico, COUNT(*) as qtd, SUM(preco) as total 
         FROM agendamentos 
@@ -264,7 +259,7 @@ def atualizar_config_api():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    campos = ['whatsapp_admin', 'sms_admin', 'whatsapp_api_url', 'whatsapp_api_token', 'twilio_account_sid', 'twilio_auth_token', 'twilio_phone_number']
+    campos = ['whatsapp_admin', 'sms_admin', 'callmebot_apikey', 'whatsapp_api_url', 'whatsapp_api_token', 'twilio_account_sid', 'twilio_auth_token', 'twilio_phone_number']
     
     for c in campos:
         val = request.form.get(c, '').strip()
@@ -273,7 +268,7 @@ def atualizar_config_api():
     conn.commit()
     conn.close()
 
-    flash('Configurações de Disparo Automático salvas com sucesso!', 'success')
+    flash('Configurações de Automação de WhatsApp e SMS salvas!', 'success')
     return redirect(url_for('admin'))
 
 @app.route('/admin/adicionar-servico', methods=['POST'])
@@ -291,7 +286,7 @@ def adicionar_servico():
             conn.execute('INSERT INTO servicos (nome, preco, imagem) VALUES (?, ?, ?)', 
                          (nome_servico, float(preco_servico), imagem_servico))
             conn.commit()
-            flash('Novo serviço cadastrado!', 'success')
+            flash('Novo serviço cadastrado com sucesso!', 'success')
         except sqlite3.IntegrityError:
             flash('Este serviço já existe.', 'danger')
         finally:
@@ -325,7 +320,7 @@ def atualizar_preco():
         conn.execute('UPDATE servicos SET preco = ? WHERE id = ?', (float(novo_preco), servico_id))
         conn.commit()
         conn.close()
-        flash('Preço alterado!', 'success')
+        flash('Preço alterado com sucesso!', 'success')
 
     return redirect(url_for('admin'))
 
@@ -341,7 +336,7 @@ def toggle_horario():
         novo_status = 0 if h['ativo'] == 1 else 1
         conn.execute('UPDATE horarios_config SET ativo = ? WHERE id = ?', (novo_status, horario_id))
         conn.commit()
-        flash('Horário alterado!', 'success')
+        flash('Status do horário alterado!', 'success')
     conn.close()
     return redirect(url_for('admin'))
 
@@ -356,9 +351,9 @@ def adicionar_horario():
         try:
             conn.execute('INSERT INTO horarios_config (hora, ativo) VALUES (?, 1)', (novo_horario,))
             conn.commit()
-            flash('Horário incluído!', 'success')
+            flash('Horário adicionado com sucesso!', 'success')
         except sqlite3.IntegrityError:
-            flash('Este horário já existe.', 'danger')
+            flash('Este horário já existe na lista.', 'danger')
         finally:
             conn.close()
 
