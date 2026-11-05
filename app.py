@@ -1,11 +1,12 @@
 import os
 import sqlite3
 import requests
+from urllib.parse import quote
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_resend_email_wa_2026')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_multicanal_11963271437_2026')
 
 DB_NAME = 'database.db'
 
@@ -64,12 +65,19 @@ def init_db():
         )
     ''')
 
+    # Número 11963271437 configurado como padrão absoluto em todas as vias
     configs_iniciais = [
-        ('whatsapp_admin', '5511991255823'),
-        ('email_admin', 'seu_email@gmail.com'),
-        ('resend_api_key', ''),
+        ('whatsapp_admin', '5511963271437'),
+        ('sms_admin', '11963271437'),
+        ('email_admin', ''),
         ('green_instance_id', '710722792308'),
-        ('green_api_token', 'df045e5d35e245f08cda18c3dab805e49ecbf003012d478089')
+        ('green_api_token', 'df045e5d35e245f08cda18c3dab805e49ecbf003012d478089'),
+        ('telegram_bot_token', ''),
+        ('telegram_chat_id', ''),
+        ('twilio_account_sid', ''),
+        ('twilio_auth_token', ''),
+        ('twilio_phone_number', ''),
+        ('resend_api_key', '')
     ]
     for c_chave, c_val in configs_iniciais:
         cursor.execute('INSERT OR IGNORE INTO config (chave, valor) VALUES (?, ?)', (c_chave, c_val))
@@ -97,38 +105,72 @@ def init_db():
 
 init_db()
 
-def disparar_notificacoes_multicanais(nome, telefone, servico, preco, data, hora):
-    """Dispara notificações para WhatsApp (Green-API) e Notificação Instantânea por E-mail."""
+def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
+    """Dispara notificações para o número 11963271437 por TODOS os canais suportados."""
     conn = get_db_connection()
     configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
     conn.close()
 
-    wa_number = configs.get('whatsapp_admin', '5511991255823').strip()
+    target_wa = configs.get('whatsapp_admin', '5511963271437').strip()
+    target_sms = configs.get('sms_admin', '11963271437').strip()
+    
     green_id = configs.get('green_instance_id', '').strip()
     green_token = configs.get('green_api_token', '').strip()
+    
+    tg_token = configs.get('telegram_bot_token', '').strip()
+    tg_chat = configs.get('telegram_chat_id', '').strip()
+    
+    tw_sid = configs.get('twilio_account_sid', '').strip()
+    tw_token = configs.get('twilio_auth_token', '').strip()
+    tw_from = configs.get('twilio_phone_number', '').strip()
+    
     email_admin = configs.get('email_admin', '').strip()
     resend_key = configs.get('resend_api_key', '').strip()
 
-    # 1. Envio por WhatsApp via Green-API
-    if green_id and green_token and wa_number:
+    msg_texto = (
+        f"💅 *NOVO AGENDAMENTO - Cath Unhas*\n\n"
+        f"👤 *Cliente:* {nome}\n"
+        f"📞 *Contato:* {telefone}\n"
+        f"✨ *Procedimento:* {servico}\n"
+        f"💰 *Valor:* R$ {preco:.2f}\n"
+        f"📅 *Data:* {data}\n"
+        f"⏰ *Horário:* {hora}"
+    )
+
+    # MEIO 1: WhatsApp via Green-API (Para 5511963271437)
+    if green_id and green_token and target_wa:
         try:
             url_green = f"https://7107.api.greenapi.com/waInstance{green_id}/sendMessage/{green_token}"
-            mensaje_wa = (
-                f"💅 *NOVO AGENDAMENTO AUTOMÁTICO - Cath Unhas*\n\n"
-                f"👤 *Cliente:* {nome}\n"
-                f"📞 *Contato:* {telefone}\n"
-                f"✨ *Procedimento:* {servico}\n"
-                f"💰 *Valor:* R$ {preco:.2f}\n"
-                f"📅 *Data:* {data}\n"
-                f"⏰ *Horário:* {hora}"
-            )
-            payload = {"chatId": f"{wa_number}@c.us", "message": mensaje_wa}
+            payload_wa = {"chatId": f"{target_wa}@c.us", "message": msg_texto}
             headers = {'Content-Type': 'application/json'}
-            requests.post(url_green, json=payload, headers=headers, timeout=5)
+            requests.post(url_green, json=payload_wa, headers=headers, timeout=5)
         except Exception as e:
-            print(f"Erro no envio do WhatsApp via Green-API: {e}")
+            print(f"Erro WhatsApp Green-API: {e}")
 
-    # 2. Envio de Notificação por E-mail Instantâneo (Ultra Eficaz / Sem bloqueios)
+    # MEIO 2: SMS via Twilio (Para 11963271437)
+    if tw_sid and tw_token and tw_from and target_sms:
+        try:
+            sms_body = f"Cath Unhas: Novo Agendamento - {nome} ({servico}) em {data} as {hora}. R$ {preco:.2f}"
+            url_twilio = f"https://api.twilio.com/2010-04-01/Accounts/{tw_sid}/Messages.json"
+            requests.post(
+                url_twilio,
+                data={'From': tw_from, 'To': f"+55{target_sms}", 'Body': sms_body},
+                auth=(tw_sid, tw_token),
+                timeout=4
+            )
+        except Exception as e:
+            print(f"Erro SMS Twilio: {e}")
+
+    # MEIO 3: Telegram Bot Instantâneo
+    if tg_token and tg_chat:
+        try:
+            url_tg = f"https://api.telegram.org/bot{tg_token}/sendMessage"
+            payload_tg = {"chat_id": tg_chat, "text": msg_texto, "parse_mode": "Markdown"}
+            requests.post(url_tg, json=payload_tg, timeout=4)
+        except Exception as e:
+            print(f"Erro Telegram: {e}")
+
+    # MEIO 4: E-mail via Resend
     if resend_key and email_admin:
         try:
             url_resend = "https://api.resend.com/emails"
@@ -139,10 +181,9 @@ def disparar_notificacoes_multicanais(nome, telefone, servico, preco, data, hora
                 "html": f"""
                 <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f7f2f5; border-radius: 12px;">
                     <h2 style="color: #421e2f;">💅 Novo Agendamento Confirmado!</h2>
-                    <p>Um novo agendamento foi efetuado no site de forma automática:</p>
                     <ul style="line-height: 1.8;">
                         <li><strong>Cliente:</strong> {nome}</li>
-                        <li><strong>Contato/WhatsApp:</strong> {telefone}</li>
+                        <li><strong>Contato:</strong> {telefone}</li>
                         <li><strong>Serviço:</strong> {servico}</li>
                         <li><strong>Valor:</strong> R$ {preco:.2f}</li>
                         <li><strong>Data:</strong> {data}</li>
@@ -151,13 +192,10 @@ def disparar_notificacoes_multicanais(nome, telefone, servico, preco, data, hora
                 </div>
                 """
             }
-            headers_resend = {
-                "Authorization": f"Bearer {resend_key}",
-                "Content-Type": "application/json"
-            }
+            headers_resend = {"Authorization": f"Bearer {resend_key}", "Content-Type": "application/json"}
             requests.post(url_resend, json=email_payload, headers=headers_resend, timeout=5)
         except Exception as e:
-            print(f"Erro no envio de e-mail Resend: {e}")
+            print(f"Erro E-mail Resend: {e}")
 
 @app.route('/')
 def home():
@@ -189,7 +227,7 @@ def booking():
             conn.commit()
             conn.close()
 
-            disparar_notificacoes_multicanais(nome, telefone, servico['nome'], servico['preco'], data, hora)
+            disparar_todos_os_meios(nome, telefone, servico['nome'], servico['preco'], data, hora)
 
             return render_template('booking_sucesso.html', nome=nome, servico=servico['nome'], data=data, hora=hora, preco=servico['preco'])
 
@@ -258,7 +296,7 @@ def atualizar_config_api():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    campos = ['whatsapp_admin', 'email_admin', 'resend_api_key', 'green_instance_id', 'green_api_token']
+    campos = ['whatsapp_admin', 'sms_admin', 'email_admin', 'green_instance_id', 'green_api_token', 'telegram_bot_token', 'telegram_chat_id', 'twilio_account_sid', 'twilio_auth_token', 'twilio_phone_number', 'resend_api_key']
     
     for c in campos:
         val = request.form.get(c, '').strip()
@@ -267,7 +305,7 @@ def atualizar_config_api():
     conn.commit()
     conn.close()
 
-    flash('Configurações de Automação salvas com sucesso!', 'success')
+    flash('Configurações salvas para o número 11963271437!', 'success')
     return redirect(url_for('admin'))
 
 @app.route('/admin/adicionar-servico', methods=['POST'])

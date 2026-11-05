@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="admin-title-bar">
-    <h2>📊 Painel Executivo & Notificações Automáticas</h2>
+    <h2>📊 Painel Executivo & Disparo Multicanal (11963271437)</h2>
     <p>Bem-vinda, <strong>{{ username }}</strong>!</p>
 </div>
 
@@ -31,17 +31,17 @@
     </div>
 </div>
 
-<!-- Automações de Notificação -->
+<!-- Notificações Multicanais para o Número 11963271437 -->
 <div class="admin-section-box">
-    <h3>⚡ Configurar Notificações Instantâneas (WhatsApp & E-mail)</h3>
-    <p class="form-subtext">Preencha seus dados de notificação abaixo para receber os novos agendamentos diretamente no seu telemóvel e no seu e-mail.</p>
+    <h3>⚡ Configuração do Destino: 11963271437 (WhatsApp, SMS & Telegram)</h3>
+    <p class="form-subtext">Todas as notificações de novos agendamentos serão encaminhadas diretamente para este número através dos canais configurados.</p>
     
     <form action="{{ url_for('atualizar_config_api') }}" method="POST" class="form-flex-column">
-        <h4 class="sub-heading">📱 WhatsApp Automático (Green-API)</h4>
+        <h4 class="sub-heading">📱 WhatsApp (Green-API) para 11963271437</h4>
         <div class="form-row">
             <div class="form-group">
-                <label>Seu WhatsApp (Ex: 5511991255823):</label>
-                <input type="text" name="whatsapp_admin" value="{{ configs.get('whatsapp_admin', '5511991255823') }}" placeholder="5511991255823">
+                <label>Número WhatsApp Destino:</label>
+                <input type="text" name="whatsapp_admin" value="{{ configs.get('whatsapp_admin', '5511963271437') }}" placeholder="5511963271437" required>
             </div>
             <div class="form-group">
                 <label>Green Instance ID:</label>
@@ -53,19 +53,47 @@
             </div>
         </div>
 
-        <h4 class="sub-heading">✉️ Notificação por E-mail (O Meio Mais Eficaz e Garantido)</h4>
+        <h4 class="sub-heading">💬 SMS Direct (Twilio API) para 11963271437</h4>
         <div class="form-row">
             <div class="form-group">
-                <label>Seu E-mail para Receber Alertas:</label>
+                <label>Número SMS Destino:</label>
+                <input type="text" name="sms_admin" value="{{ configs.get('sms_admin', '11963271437') }}" placeholder="11963271437">
+            </div>
+            <div class="form-group">
+                <label>Twilio Account SID:</label>
+                <input type="text" name="twilio_account_sid" value="{{ configs.get('twilio_account_sid', '') }}" placeholder="ACXXXXXXXXX">
+            </div>
+            <div class="form-group">
+                <label>Twilio Auth Token:</label>
+                <input type="password" name="twilio_auth_token" value="{{ configs.get('twilio_auth_token', '') }}">
+            </div>
+            <div class="form-group">
+                <label>Twilio Phone Number:</label>
+                <input type="text" name="twilio_phone_number" value="{{ configs.get('twilio_phone_number', '') }}" placeholder="+123456789">
+            </div>
+        </div>
+
+        <h4 class="sub-heading">✈️ Telegram & E-mail (Opcional)</h4>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Telegram Bot Token:</label>
+                <input type="text" name="telegram_bot_token" value="{{ configs.get('telegram_bot_token', '') }}" placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
+            </div>
+            <div class="form-group">
+                <label>Telegram Chat ID:</label>
+                <input type="text" name="telegram_chat_id" value="{{ configs.get('telegram_chat_id', '') }}" placeholder="123456789">
+            </div>
+            <div class="form-group">
+                <label>Seu E-mail Alerta:</label>
                 <input type="email" name="email_admin" value="{{ configs.get('email_admin', '') }}" placeholder="seuemail@gmail.com">
             </div>
             <div class="form-group">
-                <label>Chave API Resend (Resend.com - Grátis):</label>
+                <label>Resend API Key:</label>
                 <input type="text" name="resend_api_key" value="{{ configs.get('resend_api_key', '') }}" placeholder="re_123456789...">
             </div>
         </div>
 
-        <button type="submit" class="btn-dark">💾 Salvar Configurações</button>
+        <button type="submit" class="btn-dark">💾 Salvar Configurações Multicanais</button>
     </form>
 </div>
 

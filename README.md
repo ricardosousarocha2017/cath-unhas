@@ -1,3 +1,3 @@
-# Cath Unhas - Edição Notificações Multicanais (WhatsApp + Email Instantâneo)
+# Cath Unhas - Envio Multicanal Fixado no Número 11963271437
 
-Sistema completo com envio automático de alertas de agendamento por WhatsApp e E-mail de alta fiabilidade.
+Disparo automático integrado via WhatsApp (Green-API), SMS (Twilio), Telegram e E-mail.
