@@ -1,7 +1,7 @@
-# Cath Unhas - Edição Luxo & Gestão Avançada
+# Cath Unhas - Plataforma Executive Professional
 
-Aplicação completa de Nail Studio em Flask:
-- Design Estético Premium com Imagens de Galeria dos trabalhos reais.
-- Notificação de agendamentos no WhatsApp do Admin sem expor o número aos clientes.
-- Relatórios Gerenciais e Estatísticas de Faturamento e Atendimentos.
-- Cadastro e Gestão de Serviços, Preços e Restrição de Horários pelo Admin.
+Plataforma Web completa para Gestão de Nail Studio:
+- Faturamento, Estatísticas e Indicadores Financeiros em Tempo Real.
+- Notificações de Agendamentos por WhatsApp e SMS.
+- Galeria de Imagens de Alta Definição e Layout Premium Responsivo.
+- Controle total de Serviços, Valores, Horários e Acessos.

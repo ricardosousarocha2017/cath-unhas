@@ -1,25 +1,25 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="form-container-luxury">
-    <h2>🗓️ Agendamento Exclusivo</h2>
-    <p class="subtitle">Selecione o procedimento de sua preferência e um dos horários disponíveis.</p>
+<div class="glass-form-container">
+    <h2>🗓️ Agende o Seu Horário</h2>
+    <p class="form-subtext">Selecione o procedimento de sua preferência e um horário disponível na agenda.</p>
 
     <form action="{{ url_for('booking') }}" method="POST">
         <div class="form-group">
             <label for="nome">Nome Completo:</label>
-            <input type="text" id="nome" name="nome" placeholder="Seu nome completo" required>
+            <input type="text" id="nome" name="nome" placeholder="Digite seu nome" required>
         </div>
 
         <div class="form-group">
-            <label for="telefone">WhatsApp para Contato:</label>
+            <label for="telefone">WhatsApp / Telefone para Contato:</label>
             <input type="tel" id="telefone" name="telefone" placeholder="(11) 99999-9999" required>
         </div>
 
         <div class="form-group">
             <label for="servico_id">Procedimento Desejado:</label>
             <select id="servico_id" name="servico_id" required>
-                <option value="" disabled selected>Selecione um procedimento...</option>
+                <option value="" disabled selected>Selecione o serviço...</option>
                 {% for s in servicos %}
                     <option value="{{ s['id'] }}">{{ s['nome'] }} — R$ {{ "%.2f"|format(s['preco']) }}</option>
                 {% endfor %}
@@ -42,7 +42,7 @@
             </div>
         </div>
 
-        <button type="submit" class="btn-primary-gold full-width">Finalizar Agendamento</button>
+        <button type="submit" class="btn-gold-action full-width">Confirmar Agendamento</button>
     </form>
 </div>
 {% endblock %}

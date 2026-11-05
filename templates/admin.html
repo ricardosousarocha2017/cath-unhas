@@ -1,111 +1,121 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="admin-header">
-    <h2>📊 Painel de Controle & Relatórios Gerenciais</h2>
+<div class="admin-title-bar">
+    <h2>📊 Painel de Faturamento & Controle Executivo</h2>
     <p>Bem-vinda, <strong>{{ username }}</strong>!</p>
 </div>
 
-<!-- Relatórios e Indicadores Gerenciais -->
-<div class="reports-grid">
-    <div class="report-card">
-        <div class="report-icon">💰</div>
-        <div class="report-info">
-            <h4>Faturamento Projetado</h4>
-            <span class="report-value">R$ {{ "%.2f"|format(total_faturamento) }}</span>
+<!-- Módulo de Faturamento e KPIs Financeiros -->
+<div class="kpi-grid">
+    <div class="kpi-card gold-border">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-data">
+            <h4>Faturamento Total</h4>
+            <span class="kpi-val">R$ {{ "%.2f"|format(total_faturamento) }}</span>
         </div>
     </div>
-    <div class="report-card">
-        <div class="report-icon">📅</div>
-        <div class="report-info">
-            <h4>Total de Agendamentos</h4>
-            <span class="report-value">{{ total_atendimentos }}</span>
+    <div class="kpi-card pink-border">
+        <div class="kpi-icon">📅</div>
+        <div class="kpi-data">
+            <h4>Total Agendamentos</h4>
+            <span class="kpi-val">{{ total_atendimentos }}</span>
+        </div>
+    </div>
+    <div class="kpi-card purple-border">
+        <div class="kpi-icon">📈</div>
+        <div class="kpi-data">
+            <h4>Ticket Médio</h4>
+            <span class="kpi-val">R$ {{ "%.2f"|format(ticket_medio) }}</span>
         </div>
     </div>
 </div>
 
-<!-- Relatório por Tipo de Serviço -->
-<div class="admin-card">
-    <h3>📈 Relatório por Procedimento (Serviços Mais Vendidos)</h3>
+<!-- Relatório de Faturamento por Procedimento -->
+<div class="admin-section-box">
+    <h3>📈 Relatório Gerencial de Vendas por Serviço</h3>
     {% if relatorio_servicos %}
-    <div class="table-responsive">
-        <table>
+    <div class="table-container">
+        <table class="custom-table">
             <thead>
                 <tr>
                     <th>Procedimento</th>
-                    <th>Quantidade de Agendamentos</th>
-                    <th>Faturamento Total por Serviço</th>
+                    <th>Qtd Agendamentos</th>
+                    <th>Faturamento Total</th>
                 </tr>
             </thead>
             <tbody>
                 {% for r in relatorio_servicos %}
                 <tr>
                     <td><strong>{{ r['servico'] }}</strong></td>
-                    <td>{{ r['qtd'] }} agendamentos</td>
-                    <td>R$ {{ "%.2f"|format(r['total']) }}</td>
+                    <td>{{ r['qtd'] }} vendas</td>
+                    <td><strong class="text-gold">R$ {{ "%.2f"|format(r['total']) }}</strong></td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
     {% else %}
-    <p class="empty-msg">Nenhum dado gerencial no momento.</p>
+    <p class="empty-text">Nenhum histórico de vendas até o momento.</p>
     {% endif %}
 </div>
 
-<!-- Configurar WhatsApp do Administrador -->
-<div class="admin-card">
-    <h3>📲 Seu WhatsApp de Notificação (Privado)</h3>
-    <p class="subtitle">O número abaixo receberá as mensagens diretas de notificação de cada agendamento feito.</p>
-    <form action="{{ url_for('atualizar_whatsapp') }}" method="POST" class="form-inline">
-        <div class="form-group">
-            <label>Número com DDD (Apenas números, ex: 5511999999999):</label>
+<!-- Configurar Contatos de Notificação (WhatsApp & SMS) -->
+<div class="admin-section-box">
+    <h3>📲 Configuração de Notificações (WhatsApp & SMS)</h3>
+    <form action="{{ url_for('atualizar_contatos') }}" method="POST" class="form-flex">
+        <div class="form-group flex-1">
+            <label>WhatsApp Admin (DDD + Número, ex: 5511999999999):</label>
             <input type="text" name="novo_whatsapp" value="{{ numero_whatsapp }}" placeholder="5511999999999" required>
         </div>
-        <button type="submit" class="btn-secondary">Atualizar Número</button>
+        <div class="form-group flex-1">
+            <label>SMS Admin (DDD + Número, ex: 11999999999):</label>
+            <input type="text" name="novo_sms" value="{{ numero_sms }}" placeholder="11999999999" required>
+        </div>
+        <button type="submit" class="btn-dark">Atualizar Contatos</button>
     </form>
 </div>
 
-<!-- Incluir Novos Serviços e Gestão de Preços/Imagens -->
-<div class="admin-card">
-    <h3>➕ Cadastrar Novo Serviço na Galeria</h3>
-    <form action="{{ url_for('adicionar_servico') }}" method="POST" class="form-inline margin-bottom">
-        <div class="form-group">
+<!-- Cadastrar Novos Serviços e Ajustar Preços/Imagens -->
+<div class="admin-section-box">
+    <h3>➕ Cadastrar Novo Serviço na Vitrine</h3>
+    <form action="{{ url_for('adicionar_servico') }}" method="POST" class="form-flex margin-bottom">
+        <div class="form-group flex-2">
             <label>Nome do Serviço:</label>
             <input type="text" name="nome_servico" placeholder="Ex: Encapsulada Luxo" required>
         </div>
-        <div class="form-group">
+        <div class="form-group flex-1">
             <label>Preço (R$):</label>
-            <input type="number" step="0.01" name="preco_servico" placeholder="130.00" required>
+            <input type="number" step="0.01" name="preco_servico" placeholder="140.00" required>
         </div>
-        <div class="form-group">
-            <label>Imagem da Galeria:</label>
+        <div class="form-group flex-2">
+            <label>Foto do Serviço:</label>
             <select name="imagem_servico">
                 <option value="img_brasil.jpeg">Foto 1 - Nail Art Brasil</option>
-                <option value="img_gel.jpeg">Foto 2 - Aplicação Gel Nude</option>
+                <option value="img_gel.jpeg">Foto 2 - Banho de Gel Nude</option>
                 <option value="img_coracoes.jpeg">Foto 3 - Corações Vermelhos</option>
-                <option value="img_silver.jpeg">Foto 4 - Alongamento Prata/Stiletto</option>
+                <option value="img_silver.jpeg">Foto 4 - Stiletto Prata</option>
             </select>
         </div>
-        <button type="submit" class="btn-primary-gold btn-sm">+ Cadastrar Serviço</button>
+        <button type="submit" class="btn-gold-action btn-sm">+ Cadastrar</button>
     </form>
 
-    <hr class="divider">
+    <hr class="separator">
 
     <h3>💰 Gerenciar Serviços & Preços Existentes</h3>
-    <div class="grid-admin">
+    <div class="services-admin-grid">
         {% for s in servicos %}
-        <div class="price-box">
-            <div class="mini-img-preview">
+        <div class="service-admin-card">
+            <div class="thumb-mini">
                 <img src="{{ url_for('static', filename='images/' + s['imagem']) }}" alt="{{ s['nome'] }}">
             </div>
-            <form action="{{ url_for('atualizar_preco') }}" method="POST" class="form-inline">
+            <form action="{{ url_for('atualizar_preco') }}" method="POST" class="form-flex-sm">
                 <input type="hidden" name="servico_id" value="{{ s['id'] }}">
-                <strong>{{ s['nome'] }}</strong>
+                <span class="serv-title">{{ s['nome'] }}</span>
                 <input type="number" step="0.01" name="novo_preco" value="{{ "%.2f"|format(s['preco']) }}" required>
-                <button type="submit" class="btn-secondary btn-sm">Salvar</button>
+                <button type="submit" class="btn-dark btn-sm">Salvar</button>
             </form>
-            <form action="{{ url_for('remover_servico', servico_id=s['id']) }}" method="POST" onsubmit="return confirm('Excluir este serviço?');" class="margin-top-sm">
+            <form action="{{ url_for('remover_servico', servico_id=s['id']) }}" method="POST" onsubmit="return confirm('Excluir este serviço?');" class="margin-top-xs">
                 <button type="submit" class="btn-danger btn-sm">Excluir</button>
             </form>
         </div>
@@ -113,58 +123,58 @@
     </div>
 </div>
 
-<!-- Configuração de Horários -->
-<div class="admin-card">
-    <h3>⏰ Configurar e Restringir Horários de Atendimento</h3>
-    <div class="horarios-grid">
+<!-- Configurar Horários -->
+<div class="admin-section-box">
+    <h3>⏰ Gestão e Restrição de Horários</h3>
+    <div class="horarios-flex">
         {% for h in horarios %}
         <form action="{{ url_for('toggle_horario') }}" method="POST" style="display:inline;">
             <input type="hidden" name="horario_id" value="{{ h['id'] }}">
-            <button type="submit" class="btn-horario {{ 'ativo' if h['ativo'] == 1 else 'bloqueado' }}">
-                {{ h['hora'] }} — {{ '✅ Liberado' if h['ativo'] == 1 else '🔒 Bloqueado' }}
+            <button type="submit" class="btn-time-chip {{ 'active' if h['ativo'] == 1 else 'disabled' }}">
+                {{ h['hora'] }} — {{ '✅ Ativo' if h['ativo'] == 1 else '🔒 Bloqueado' }}
             </button>
         </form>
         {% endfor %}
     </div>
 
-    <form action="{{ url_for('adicionar_horario') }}" method="POST" class="form-inline margin-top">
-        <input type="text" name="novo_horario" placeholder="Ex: 19:00" required>
-        <button type="submit" class="btn-secondary">Adicionar Horário</button>
+    <form action="{{ url_for('adicionar_horario') }}" method="POST" class="form-flex margin-top">
+        <input type="text" name="novo_horario" placeholder="Ex: 19:30" required>
+        <button type="submit" class="btn-dark">Adicionar Horário</button>
     </form>
 </div>
 
-<!-- Alterar Usuário e Senha -->
-<div class="admin-card">
-    <h3>🔑 Segurança (Alterar Usuário e Senha)</h3>
-    <form action="{{ url_for('alterar_senha') }}" method="POST" class="form-inline">
-        <div class="form-group">
+<!-- Segurança -->
+<div class="admin-section-box">
+    <h3>🔑 Segurança de Acesso</h3>
+    <form action="{{ url_for('alterar_senha') }}" method="POST" class="form-flex">
+        <div class="form-group flex-1">
             <label>Novo Usuário:</label>
             <input type="text" name="novo_usuario" value="{{ username }}" required>
         </div>
-        <div class="form-group">
+        <div class="form-group flex-1">
             <label>Nova Senha:</label>
-            <input type="password" name="nova_senha" placeholder="Nova Senha" required>
+            <input type="password" name="nova_senha" placeholder="Senha" required>
         </div>
-        <button type="submit" class="btn-secondary">Atualizar Acesso</button>
+        <button type="submit" class="btn-dark">Salvar Acesso</button>
     </form>
 </div>
 
-<!-- Tabela de Agendamentos e Notificação WhatsApp -->
-<div class="admin-card">
-    <h3>📋 Agendamentos Recebidos & Notificação WhatsApp</h3>
+<!-- Tabela de Agendamentos e Disparo de Notificações WhatsApp / SMS -->
+<div class="admin-section-box">
+    <h3>📋 Central de Agendamentos & Disparo WhatsApp / SMS</h3>
     {% if agendamentos %}
-    <div class="table-responsive">
-        <table>
+    <div class="table-container">
+        <table class="custom-table">
             <thead>
                 <tr>
                     <th>#</th>
                     <th>Cliente</th>
                     <th>Contato</th>
-                    <th>Procedimento</th>
+                    <th>Serviço</th>
                     <th>Valor</th>
                     <th>Data</th>
                     <th>Hora</th>
-                    <th>Ações da Admin</th>
+                    <th>Notificações Admin</th>
                 </tr>
             </thead>
             <tbody>
@@ -173,13 +183,13 @@
                     <td>{{ a['id'] }}</td>
                     <td><strong>{{ a['nome'] }}</strong></td>
                     <td>{{ a['telefone'] }}</td>
-                    <td><span class="tag-luxury">{{ a['servico'] }}</span></td>
+                    <td><span class="badge-executive">{{ a['servico'] }}</span></td>
                     <td>R$ {{ "%.2f"|format(a['preco']) }}</td>
                     <td>{{ a['data'] }}</td>
                     <td>{{ a['hora'] }}</td>
-                    <td class="action-buttons">
-                        <a href="{{ url_for('notificar_whatsapp', agendamento_id=a['id']) }}" target="_blank" class="btn-notify-admin">📲 Mandar p/ Meu WhatsApp</a>
-                        <a href="https://api.whatsapp.com/send?phone=55{{ a['telefone'] | replace(' ', '') | replace('-', '') | replace('(', '') | replace(')', '') }}&text=Olá%20{{ a['nome'] }},%20sou%20a%20Cath!%20Confirmo%20seu%20agendamento%20para%20{{ a['data'] }}%20às%20{{ a['hora'] }}." target="_blank" class="btn-sm-whatsapp">💬 Falar c/ Cliente</a>
+                    <td class="action-flex">
+                        <a href="{{ url_for('notificar_whatsapp', agendamento_id=a['id']) }}" target="_blank" class="btn-wa">📲 WhatsApp</a>
+                        <a href="{{ url_for('notificar_sms', agendamento_id=a['id']) }}" target="_blank" class="btn-sms">💬 SMS</a>
                     </td>
                 </tr>
                 {% endfor %}
@@ -187,7 +197,7 @@
         </table>
     </div>
     {% else %}
-    <p class="empty-msg">Nenhum agendamento registado até ao momento.</p>
+    <p class="empty-text">Nenhum agendamento cadastrado.</p>
     {% endif %}
 </div>
 {% endblock %}

@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="form-container-luxury small-container">
+<div class="glass-form-container small-card">
     <h2>🔐 Restrito — Administração</h2>
-    <p class="subtitle">Insira suas credenciais de acesso.</p>
+    <p class="form-subtext">Acesso exclusivo do gerenciamento do studio.</p>
 
     <form action="{{ url_for('login') }}" method="POST">
         <div class="form-group">
@@ -16,7 +16,7 @@
             <input type="password" id="password" name="password" placeholder="Senha" required>
         </div>
 
-        <button type="submit" class="btn-primary-gold full-width">Acessar Painel</button>
+        <button type="submit" class="btn-gold-action full-width">Entrar no Painel</button>
     </form>
 </div>
 {% endblock %}
