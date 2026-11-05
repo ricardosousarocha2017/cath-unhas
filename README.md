@@ -1,3 +1,3 @@
-# Cath Unhas - Plataforma Executive com Notificações Automáticas de WhatsApp (Green-API)
+# Cath Unhas - Edição Notificações Multicanais (WhatsApp + Email Instantâneo)
 
-Ficheiro completo corrigido para deploy automático.
+Sistema completo com envio automático de alertas de agendamento por WhatsApp e E-mail de alta fiabilidade.

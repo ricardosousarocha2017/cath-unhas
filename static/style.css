@@ -69,7 +69,6 @@ h1, h2, h3, .logo {
 .alert-success { background: #e2f0d9; color: #2d572c; border: 1px solid #b8e0a8; }
 .alert-danger { background: #fce4e4; color: #842029; border: 1px solid #f7b7b7; }
 
-/* Hero Section com Imagem e Overlay Luxo */
 .hero-executive {
     position: relative;
     background: url('/static/images/img_brasil.jpeg') center/cover no-repeat;
@@ -194,7 +193,6 @@ h1, h2, h3, .logo {
     font-weight: 600;
 }
 
-/* Portfolio Section */
 .portfolio-section {
     margin: 4rem 0;
 }
@@ -234,7 +232,6 @@ h1, h2, h3, .logo {
     text-align: center;
 }
 
-/* Form Container */
 .glass-form-container {
     background: white;
     padding: 3rem;
