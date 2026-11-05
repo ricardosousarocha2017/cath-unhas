@@ -39,11 +39,6 @@ h1, h2, h3, .logo {
     margin-left: 1.8rem;
     font-weight: 500;
     font-size: 0.95rem;
-    transition: color 0.3s;
-}
-
-.navbar nav a:hover {
-    color: #d4af37;
 }
 
 .btn-admin-nav {
@@ -70,12 +65,10 @@ h1, h2, h3, .logo {
     padding: 14px 20px;
     border-radius: 10px;
     margin-bottom: 1.5rem;
-    font-size: 0.95rem;
 }
 .alert-success { background: #e2f0d9; color: #2d572c; border: 1px solid #b8e0a8; }
 .alert-danger { background: #fce4e4; color: #842029; border: 1px solid #f7b7b7; }
 
-/* Hero Executive */
 .hero-executive {
     position: relative;
     background: url('/static/images/img_brasil.jpeg') center/cover no-repeat;
@@ -136,11 +129,6 @@ h1, h2, h3, .logo {
     border: none;
     cursor: pointer;
     box-shadow: 0 8px 24px rgba(170, 130, 10, 0.4);
-    transition: transform 0.2s;
-}
-
-.btn-gold-action:hover {
-    transform: translateY(-3px);
 }
 
 .section-title {
@@ -150,7 +138,6 @@ h1, h2, h3, .logo {
     margin-bottom: 2.2rem;
 }
 
-/* Services Grid */
 .services-luxury-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -166,11 +153,6 @@ h1, h2, h3, .logo {
     border: 1px solid #efe3e8;
     display: flex;
     flex-direction: column;
-    transition: transform 0.3s;
-}
-
-.service-card-executive:hover {
-    transform: translateY(-6px);
 }
 
 .card-thumb {
@@ -182,11 +164,6 @@ h1, h2, h3, .logo {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.5s;
-}
-
-.service-card-executive:hover .card-thumb img {
-    transform: scale(1.06);
 }
 
 .card-content {
@@ -196,12 +173,6 @@ h1, h2, h3, .logo {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-}
-
-.card-content h3 {
-    font-size: 1.3rem;
-    color: #1f1118;
-    margin-bottom: 0.5rem;
 }
 
 .price-val {
@@ -222,47 +193,6 @@ h1, h2, h3, .logo {
     font-weight: 600;
 }
 
-/* Portfolio Section */
-.portfolio-section {
-    margin: 4rem 0;
-}
-
-.portfolio-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.5rem;
-}
-
-.portfolio-item {
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-    height: 270px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-}
-
-.portfolio-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s;
-}
-
-.portfolio-item:hover img {
-    transform: scale(1.08);
-}
-
-.portfolio-caption {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    background: linear-gradient(transparent, rgba(31, 17, 24, 0.9));
-    color: white;
-    padding: 1rem;
-    font-size: 0.85rem;
-    text-align: center;
-}
-
-/* Form Container */
 .glass-form-container {
     background: white;
     padding: 3rem;
@@ -304,13 +234,12 @@ h1, h2, h3, .logo {
 
 .form-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 1.2rem;
 }
 
 .full-width { width: 100%; }
 
-/* Confirmation */
 .text-center { text-align: center; }
 .luxury-icon { font-size: 4rem; margin-bottom: 0.5rem; }
 
@@ -331,12 +260,12 @@ h1, h2, h3, .logo {
 }
 
 .privacy-info {
-    color: #6b545f;
-    font-size: 0.9rem;
+    color: #2d572c;
+    font-weight: 600;
+    font-size: 0.95rem;
     margin-bottom: 1.5rem;
 }
 
-/* KPI Cards */
 .kpi-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -377,7 +306,6 @@ h1, h2, h3, .logo {
     color: #1f1118;
 }
 
-/* Admin Box */
 .admin-section-box {
     background: white;
     padding: 2.2rem;
@@ -387,9 +315,15 @@ h1, h2, h3, .logo {
     margin-bottom: 2.2rem;
 }
 
-.admin-section-box h3 {
-    margin-bottom: 1.4rem;
-    color: #1f1118;
+.sub-heading {
+    margin: 1.2rem 0 0.8rem 0;
+    color: #421e2f;
+}
+
+.form-flex-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
 }
 
 .table-container { overflow-x: auto; }
@@ -408,116 +342,13 @@ h1, h2, h3, .logo {
 
 .custom-table th { background: #fdf5f9; color: #421e2f; font-size: 0.85rem; }
 
-.text-gold { color: #aa820a; }
-
-.form-flex {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-end;
-    flex-wrap: wrap;
-}
-
-.flex-1 { flex: 1; }
-.flex-2 { flex: 2; }
-
 .btn-dark {
     background: #421e2f;
     color: white;
-    padding: 11px 20px;
+    padding: 12px 24px;
     border-radius: 8px;
     border: none;
     cursor: pointer;
-    font-weight: 600;
-}
-
-.services-admin-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.2rem;
-    margin-top: 1rem;
-}
-
-.service-admin-card {
-    background: #fdf5f9;
-    padding: 1.2rem;
-    border-radius: 14px;
-    border: 1px solid #efe3e8;
-}
-
-.thumb-mini {
-    height: 110px;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-bottom: 0.8rem;
-}
-
-.thumb-mini img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.form-flex-sm {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.serv-title { font-weight: 700; color: #1f1118; }
-
-.btn-danger {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.btn-sm { padding: 8px 14px; font-size: 0.85rem; }
-
-.horarios-flex {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.8rem;
-    margin-top: 1rem;
-}
-
-.btn-time-chip {
-    padding: 9px 18px;
-    border-radius: 25px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 0.85rem;
-}
-
-.btn-time-chip.active { background: #e2f0d9; color: #2d572c; }
-.btn-time-chip.disabled { background: #fce4e4; color: #842029; text-decoration: line-through; }
-
-.action-flex {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.btn-wa {
-    background: #25d366;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.btn-sms {
-    background: #007bff;
-    color: white;
-    padding: 6px 12px;
-    border-radius: 6px;
-    text-decoration: none;
-    font-size: 0.8rem;
     font-weight: 600;
 }
 
@@ -530,15 +361,14 @@ h1, h2, h3, .logo {
     font-weight: 600;
 }
 
-.separator {
-    margin: 1.8rem 0;
-    border: 0;
-    border-top: 1px solid #efe3e8;
+.badge-auto {
+    background: #e2f0d9;
+    color: #2d572c;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
 }
-
-.margin-top { margin-top: 1.2rem; }
-.margin-top-xs { margin-top: 0.4rem; }
-.margin-bottom { margin-bottom: 1.4rem; }
 
 footer {
     text-align: center;

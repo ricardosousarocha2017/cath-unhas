@@ -1,11 +1,12 @@
 import os
 import sqlite3
+import requests
 from urllib.parse import quote
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_secreta_2026_enterprise')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_secreta_2026_auto_dispatch')
 
 DB_NAME = 'database.db'
 
@@ -18,7 +19,7 @@ def init_db():
     conn = get_db_connection()
     cursor = conn.cursor()
     
-    # Agendamentos
+    # Tabela de Agendamentos
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS agendamentos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,7 +33,7 @@ def init_db():
         )
     ''')
     
-    # Serviços e Preços
+    # Tabela de Serviços e Preços
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS servicos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,7 +52,7 @@ def init_db():
         )
     ''')
     
-    # Configurações de Notificação (WhatsApp e SMS)
+    # Configurações de Notificação Automática (API WhatsApp, Twilio, Webhook)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS config (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,11 +70,20 @@ def init_db():
         )
     ''')
 
-    # Inserção de configurações padrão
-    cursor.execute('INSERT OR IGNORE INTO config (chave, valor) VALUES (?, ?)', ('whatsapp_admin', '5511999999999'))
-    cursor.execute('INSERT OR IGNORE INTO config (chave, valor) VALUES (?, ?)', ('sms_admin', '11999999999'))
+    # Configurações padrão
+    configs_iniciais = [
+        ('whatsapp_admin', '5511999999999'),
+        ('sms_admin', '11999999999'),
+        ('whatsapp_api_url', ''),      # URL da API de WhatsApp (ex: Z-API, Evolution API ou CallMeBot)
+        ('whatsapp_api_token', ''),    # Token / Chave da API de WhatsApp
+        ('twilio_account_sid', ''),    # SID da conta Twilio para SMS automático
+        ('twilio_auth_token', ''),     # Token da conta Twilio para SMS
+        ('twilio_phone_number', '')    # Número de envio Twilio
+    ]
+    for c_chave, c_val in configs_iniciais:
+        cursor.execute('INSERT OR IGNORE INTO config (chave, valor) VALUES (?, ?)', (c_chave, c_val))
 
-    # Serviços Iniciais com Imagens
+    # Serviços Iniciais
     servicos_iniciais = [
         ('Alongamento Molde F1', 150.00, 'img_brasil.jpeg'),
         ('Manutenção de Molde F1', 90.00, 'img_gel.jpeg'),
@@ -88,7 +98,7 @@ def init_db():
     for h in horarios_padrao:
         cursor.execute('INSERT OR IGNORE INTO horarios_config (hora, ativo) VALUES (?, 1)', (h,))
 
-    # Criar Usuário Admin Padrão
+    # Usuário Admin Padrão
     cursor.execute('SELECT COUNT(*) FROM usuarios')
     if cursor.fetchone()[0] == 0:
         senha_hash = generate_password_hash('1234')
@@ -98,6 +108,58 @@ def init_db():
     conn.close()
 
 init_db()
+
+def disparar_notificacoes_automaticas(nome, telefone, servico, preco, data, hora):
+    """Envia automaticamente Notificações de WhatsApp e SMS no momento exato do agendamento sem ação do admin."""
+    conn = get_db_connection()
+    configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
+    conn.close()
+
+    whatsapp_admin = configs.get('whatsapp_admin', '')
+    sms_admin = configs.get('sms_admin', '')
+    
+    msg_texto = f"💅 *NOVO AGENDAMENTO AUTOMÁTICO - Cath Unhas*\n\n👤 *Cliente:* {nome}\n📞 *Telefone:* {telefone}\n✨ *Serviço:* {servico}\n💰 *Valor:* R$ {preco:.2f}\n📅 *Data:* {data}\n⏰ *Horário:* {hora}"
+
+    # 1. Envio Automático por WhatsApp via CallMeBot / Gateway Webhook / Z-API
+    wa_api_url = configs.get('whatsapp_api_url', '').strip()
+    wa_api_token = configs.get('whatsapp_api_token', '').strip()
+
+    if wa_api_url:
+        try:
+            # Exemplo de integração universal via HTTP POST / GET
+            payload = {
+                'phone': whatsapp_admin,
+                'message': msg_texto,
+                'apikey': wa_api_token
+            }
+            requests.post(wa_api_url, json=payload, timeout=5)
+        except Exception as e:
+            print(f"Erro ao enviar WhatsApp automático: {e}")
+    elif whatsapp_admin:
+        # Integração gratuita automática via API Pública CallMeBot (WhatsApp)
+        try:
+            callmebot_url = f"https://api.callmebot.com/whatsapp.php?phone={whatsapp_admin}&text={quote(msg_texto)}&apikey={wa_api_token}"
+            requests.get(callmebot_url, timeout=5)
+        except Exception as e:
+            print(f"Erro no envio CallMeBot WhatsApp: {e}")
+
+    # 2. Envio Automático por SMS via Twilio API
+    twilio_sid = configs.get('twilio_account_sid', '').strip()
+    twilio_token = configs.get('twilio_auth_token', '').strip()
+    twilio_from = configs.get('twilio_phone_number', '').strip()
+
+    if twilio_sid and twilio_token and twilio_from and sms_admin:
+        try:
+            sms_body = f"Cath Unhas: Novo Agendamento de {nome} - {servico} em {data} as {hora}. R$ {preco:.2f}"
+            twilio_url = f"https://api.twilio.com/2010-04-01/Accounts/{twilio_sid}/Messages.json"
+            requests.post(
+                twilio_url,
+                data={'From': twilio_from, 'To': f"+55{sms_admin}", 'Body': sms_body},
+                auth=(twilio_sid, twilio_token),
+                timeout=5
+            )
+        except Exception as e:
+            print(f"Erro ao enviar SMS via Twilio: {e}")
 
 @app.route('/')
 def home():
@@ -129,7 +191,9 @@ def booking():
             conn.commit()
             conn.close()
 
-            # O cliente conclui no site com visual luxo e privacidade
+            # DISPARO AUTOMÁTICO DE NOTIFICAÇÕES (SEM NECESSIDADE DE ACESSAR O SITE)
+            disparar_notificacoes_automaticas(nome, telefone, servico['nome'], servico['preco'], data, hora)
+
             return render_template('booking_sucesso.html', nome=nome, servico=servico['nome'], data=data, hora=hora, preco=servico['preco'])
 
     conn.close()
@@ -166,15 +230,14 @@ def admin():
     servicos = conn.execute('SELECT * FROM servicos').fetchall()
     horarios = conn.execute('SELECT * FROM horarios_config ORDER BY hora ASC').fetchall()
     
-    whatsapp_cfg = conn.execute("SELECT valor FROM config WHERE chave = 'whatsapp_admin'").fetchone()
-    sms_cfg = conn.execute("SELECT valor FROM config WHERE chave = 'sms_admin'").fetchone()
+    configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
 
-    # Métricas Financeiras Profissionais
+    # Métricas Financeiras
     total_faturamento = conn.execute("SELECT SUM(preco) FROM agendamentos").fetchone()[0] or 0.0
     total_atendimentos = len(agendamentos)
     ticket_medio = (total_faturamento / total_atendimentos) if total_atendimentos > 0 else 0.0
 
-    # Relatório Detalhado por Serviço (Vendas e Faturamento)
+    # Relatório por Serviço
     relatorio_servicos = conn.execute('''
         SELECT servico, COUNT(*) as qtd, SUM(preco) as total 
         FROM agendamentos 
@@ -183,77 +246,34 @@ def admin():
     ''').fetchall()
 
     conn.close()
-    
-    numero_whatsapp = whatsapp_cfg['valor'] if whatsapp_cfg else ''
-    numero_sms = sms_cfg['valor'] if sms_cfg else ''
 
     return render_template('admin.html', 
                            agendamentos=agendamentos, 
                            servicos=servicos, 
                            horarios=horarios, 
-                           numero_whatsapp=numero_whatsapp,
-                           numero_sms=numero_sms,
+                           configs=configs,
                            username=session.get('username'),
                            total_faturamento=total_faturamento,
                            total_atendimentos=total_atendimentos,
                            ticket_medio=ticket_medio,
                            relatorio_servicos=relatorio_servicos)
 
-@app.route('/admin/notificar-whatsapp/<int:agendamento_id>')
-def notificar_whatsapp(agendamento_id):
+@app.route('/admin/atualizar-config-api', methods=['POST'])
+def atualizar_config_api():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    agendamento = conn.execute('SELECT * FROM agendamentos WHERE id = ?', (agendamento_id,)).fetchone()
-    whatsapp_cfg = conn.execute("SELECT valor FROM config WHERE chave = 'whatsapp_admin'").fetchone()
-    conn.close()
-
-    if agendamento and whatsapp_cfg:
-        numero_admin = whatsapp_cfg['valor']
-        mensagem = f"👑 *NOVO AGENDAMENTO EXECUTIVE - Cath Unhas*\n\n👤 *Cliente:* {agendamento['nome']}\n📞 *Telefone:* {agendamento['telefone']}\n✨ *Serviço:* {agendamento['servico']}\n💰 *Valor:* R$ {agendamento['preco']:.2f}\n📅 *Data:* {agendamento['data']}\n⏰ *Horário:* {agendamento['hora']}"
-        link_whatsapp = f"https://api.whatsapp.com/send?phone={numero_admin}&text={quote(mensagem)}"
-        return redirect(link_whatsapp)
-
-    flash('Falha ao gerar notificação de WhatsApp.', 'danger')
-    return redirect(url_for('admin'))
-
-@app.route('/admin/notificar-sms/<int:agendamento_id>')
-def notificar_sms(agendamento_id):
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    agendamento = conn.execute('SELECT * FROM agendamentos WHERE id = ?', (agendamento_id,)).fetchone()
-    sms_cfg = conn.execute("SELECT valor FROM config WHERE chave = 'sms_admin'").fetchone()
-    conn.close()
-
-    if agendamento and sms_cfg:
-        numero_sms = sms_cfg['valor']
-        texto = f"Cath Unhas: Novo Agendamento de {agendamento['nome']} - {agendamento['servico']} em {agendamento['data']} as {agendamento['hora']}. R$ {agendamento['preco']:.2f}"
-        link_sms = f"sms:{numero_sms}?body={quote(texto)}"
-        return redirect(link_sms)
-
-    flash('Falha ao disparar notificação por SMS.', 'danger')
-    return redirect(url_for('admin'))
-
-@app.route('/admin/atualizar-contatos', methods=['POST'])
-def atualizar_contatos():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    novo_whatsapp = request.form.get('novo_whatsapp').strip()
-    novo_sms = request.form.get('novo_sms').strip()
-
-    conn = get_db_connection()
-    if novo_whatsapp:
-        conn.execute("INSERT OR REPLACE INTO config (id, chave, valor) VALUES ((SELECT id FROM config WHERE chave='whatsapp_admin'), 'whatsapp_admin', ?)", (novo_whatsapp,))
-    if novo_sms:
-        conn.execute("INSERT OR REPLACE INTO config (id, chave, valor) VALUES ((SELECT id FROM config WHERE chave='sms_admin'), 'sms_admin', ?)", (novo_sms,))
+    campos = ['whatsapp_admin', 'sms_admin', 'whatsapp_api_url', 'whatsapp_api_token', 'twilio_account_sid', 'twilio_auth_token', 'twilio_phone_number']
+    
+    for c in campos:
+        val = request.form.get(c, '').strip()
+        conn.execute("INSERT OR REPLACE INTO config (id, chave, valor) VALUES ((SELECT id FROM config WHERE chave=?), ?, ?)", (c, c, val))
+        
     conn.commit()
     conn.close()
 
-    flash('Contatos de notificação (WhatsApp/SMS) atualizados!', 'success')
+    flash('Configurações de Disparo Automático salvas com sucesso!', 'success')
     return redirect(url_for('admin'))
 
 @app.route('/admin/adicionar-servico', methods=['POST'])
@@ -271,9 +291,9 @@ def adicionar_servico():
             conn.execute('INSERT INTO servicos (nome, preco, imagem) VALUES (?, ?, ?)', 
                          (nome_servico, float(preco_servico), imagem_servico))
             conn.commit()
-            flash('Novo serviço cadastrado com sucesso!', 'success')
+            flash('Novo serviço cadastrado!', 'success')
         except sqlite3.IntegrityError:
-            flash('Um serviço com esse nome já existe.', 'danger')
+            flash('Este serviço já existe.', 'danger')
         finally:
             conn.close()
 
@@ -371,7 +391,7 @@ def alterar_senha():
 @app.route('/logout')
 def logout():
     session.clear()
-    flash('Sessão encerrada com sucesso.', 'info')
+    flash('Sessão encerrada.', 'info')
     return redirect(url_for('login'))
 
 if __name__ == '__main__':

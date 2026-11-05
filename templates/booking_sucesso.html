@@ -3,8 +3,8 @@
 {% block content %}
 <div class="glass-form-container text-center">
     <div class="luxury-icon">✨</div>
-    <h2>Agendamento Confirmado!</h2>
-    <p class="success-intro">Obrigado, <strong>{{ nome }}</strong>! Seu agendamento foi registrado com sucesso.</p>
+    <h2>Agendamento Concluído!</h2>
+    <p class="success-intro">Obrigado, <strong>{{ nome }}</strong>! Seu horário foi reservado no sistema.</p>
     
     <div class="summary-card">
         <div class="summary-row"><span>Procedimento:</span> <strong>{{ servico }}</strong></div>
@@ -13,7 +13,7 @@
         <div class="summary-row"><span>Horário:</span> <strong>{{ hora }}</strong></div>
     </div>
 
-    <p class="privacy-info">🔒 <em>A administração foi notificada de forma privada via WhatsApp/SMS e aguarda você no horário agendado!</em></p>
+    <p class="privacy-info">⚡ <em>A administração foi notificada automaticamente por WhatsApp e SMS e já reservou sua vaga!</em></p>
 
     <br>
     <a href="{{ url_for('home') }}" class="btn-service-booking">← Voltar à Página Inicial</a>
