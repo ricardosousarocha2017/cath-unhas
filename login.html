@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-form-container small-card">
+    <h2>🔐 Restrito — Administração</h2>
+    <p class="form-subtext">Acesso exclusivo do gerenciamento.</p>
+
+    <form action="{{ url_for('login') }}" method="POST">
+        <div class="form-group">
+            <label for="username">Usuário Administrador:</label>
+            <input type="text" id="username" name="username" placeholder="Usuário" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Senha de Acesso:</label>
+            <input type="password" id="password" name="password" placeholder="Senha" required>
+        </div>
+        <button type="submit" class="btn-gold-action full-width">Acessar Painel</button>
+    </form>
+</div>
+{% endblock %}

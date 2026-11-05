@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_secreta_2026_green_api')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_secreta_2026_final_v6')
 
 DB_NAME = 'database.db'
 
@@ -66,9 +66,16 @@ def init_db():
     ''')
 
     configs_iniciais = [
-        ('whatsapp_admin', '5511991255823'),
-        ('green_instance_id', ''),       # Seu idInstance da Green-API
-        ('green_api_token', '')          # Seu apiTokenInstance da Green-API
+        ('whatsapp_admin', '5511993947608'),
+        ('sms_admin', '11993947608'),
+        ('green_instance_id', ''),
+        ('green_api_token', ''),
+        ('callmebot_apikey', ''),
+        ('whatsapp_api_url', ''),
+        ('whatsapp_api_token', ''),
+        ('twilio_account_sid', ''),
+        ('twilio_auth_token', ''),
+        ('twilio_phone_number', '')
     ]
     for c_chave, c_val in configs_iniciais:
         cursor.execute('INSERT OR IGNORE INTO config (chave, valor) VALUES (?, ?)', (c_chave, c_val))
@@ -96,36 +103,55 @@ def init_db():
 
 init_db()
 
-def disparar_whatsapp_automatico(nome, telefone, servico, preco, data, hora):
-    """Envia mensagem direta no WhatsApp usando a Green-API."""
+def disparar_notificacoes_automaticas(nome, telefone, servico, preco, data, hora):
+    """Dispara a notificação automática para o telemóvel do Administrador via Green-API, CallMeBot ou Twilio."""
     conn = get_db_connection()
     configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
     conn.close()
 
-    wa_number = configs.get('whatsapp_admin', '5511991255823').strip()
-    instance_id = configs.get('green_instance_id', '').strip()
-    api_token = configs.get('green_api_token', '').strip()
+    wa_number = configs.get('whatsapp_admin', '5511993947608').strip()
+    green_id = configs.get('green_instance_id', '').strip()
+    green_token = configs.get('green_api_token', '').strip()
+    callmebot_key = configs.get('callmebot_apikey', '').strip()
 
-    if instance_id and api_token and wa_number:
+    mensagem = f"💅 *NOVO AGENDAMENTO - Cath Unhas*\n\n👤 *Cliente:* {nome}\n📞 *Contato:* {telefone}\n✨ *Procedimento:* {servico}\n💰 *Valor:* R$ {preco:.2f}\n📅 *Data:* {data}\n⏰ *Horário:* {hora}"
+
+    # 1. Envio Direto via Green-API (Recomendado & Gratuito)
+    if green_id and green_token and wa_number:
         try:
-            url = f"https://api.green-api.com/waInstance{instance_id}/sendMessage/{api_token}"
-            mensaje = (
-                f"💅 *NOVO AGENDAMENTO - Cath Unhas*\n\n"
-                f"👤 *Cliente:* {nome}\n"
-                f"📞 *Contato:* {telefone}\n"
-                f"✨ *Procedimento:* {servico}\n"
-                f"💰 *Valor:* R$ {preco:.2f}\n"
-                f"📅 *Data:* {data}\n"
-                f"⏰ *Horário:* {hora}"
-            )
-            payload = {
-                "chatId": f"{wa_number}@c.us",
-                "message": mensaje
-            }
+            url_green = f"https://api.green-api.com/waInstance{green_id}/sendMessage/{green_token}"
+            payload = {"chatId": f"{wa_number}@c.us", "message": mensagem}
             headers = {'Content-Type': 'application/json'}
-            requests.post(url, json=payload, headers=headers, timeout=5)
+            requests.post(url_green, json=payload, headers=headers, timeout=5)
         except Exception as e:
-            print(f"Erro ao disparar WhatsApp: {e}")
+            print(f"Erro Green-API WhatsApp: {e}")
+
+    # 2. Envio Fallback via CallMeBot (se configurado)
+    elif wa_number and callmebot_key:
+        try:
+            url_callmebot = f"https://api.callmebot.com/whatsapp.php?phone={wa_number}&text={quote(mensagem)}&apikey={callmebot_key}"
+            requests.get(url_callmebot, timeout=5)
+        except Exception as e:
+            print(f"Erro CallMeBot: {e}")
+
+    # 3. Envio SMS via Twilio (opcional)
+    twilio_sid = configs.get('twilio_account_sid', '').strip()
+    twilio_token = configs.get('twilio_auth_token', '').strip()
+    twilio_from = configs.get('twilio_phone_number', '').strip()
+    sms_admin = configs.get('sms_admin', '').strip()
+
+    if twilio_sid and twilio_token and twilio_from and sms_admin:
+        try:
+            sms_body = f"Cath Unhas: Novo Agendamento - {nome} ({servico}) em {data} as {hora}. R$ {preco:.2f}"
+            twilio_url = f"https://api.twilio.com/2010-04-01/Accounts/{twilio_sid}/Messages.json"
+            requests.post(
+                twilio_url,
+                data={'From': twilio_from, 'To': f"+55{sms_admin}", 'Body': sms_body},
+                auth=(twilio_sid, twilio_token),
+                timeout=4
+            )
+        except Exception as e:
+            print(f"Erro SMS Twilio: {e}")
 
 @app.route('/')
 def home():
@@ -157,8 +183,7 @@ def booking():
             conn.commit()
             conn.close()
 
-            # Disparo imediato para o seu WhatsApp
-            disparar_whatsapp_automatico(nome, telefone, servico['nome'], servico['preco'], data, hora)
+            disparar_notificacoes_automaticas(nome, telefone, servico['nome'], servico['preco'], data, hora)
 
             return render_template('booking_sucesso.html', nome=nome, servico=servico['nome'], data=data, hora=hora, preco=servico['preco'])
 
@@ -227,18 +252,128 @@ def atualizar_config_api():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    whatsapp_admin = request.form.get('whatsapp_admin', '').strip()
-    green_instance_id = request.form.get('green_instance_id', '').strip()
-    green_api_token = request.form.get('green_api_token', '').strip()
-
-    conn.execute("INSERT OR REPLACE INTO config (id, chave, valor) VALUES ((SELECT id FROM config WHERE chave='whatsapp_admin'), 'whatsapp_admin', ?)", (whatsapp_admin,))
-    conn.execute("INSERT OR REPLACE INTO config (id, chave, valor) VALUES ((SELECT id FROM config WHERE chave='green_instance_id'), 'green_instance_id', ?)", (green_instance_id,))
-    conn.execute("INSERT OR REPLACE INTO config (id, chave, valor) VALUES ((SELECT id FROM config WHERE chave='green_api_token'), 'green_api_token', ?)", (green_api_token,))
+    campos = ['whatsapp_admin', 'sms_admin', 'green_instance_id', 'green_api_token', 'callmebot_apikey', 'whatsapp_api_url', 'whatsapp_api_token', 'twilio_account_sid', 'twilio_auth_token', 'twilio_phone_number']
+    
+    for c in campos:
+        val = request.form.get(c, '').strip()
+        conn.execute("INSERT OR REPLACE INTO config (id, chave, valor) VALUES ((SELECT id FROM config WHERE chave=?), ?, ?)", (c, c, val))
         
     conn.commit()
     conn.close()
 
-    flash('Dados do WhatsApp salvos com sucesso!', 'success')
+    flash('Configurações de Automação salvas!', 'success')
+    return redirect(url_for('admin'))
+
+@app.route('/admin/adicionar-servico', methods=['POST'])
+def adicionar_servico():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    nome_servico = request.form.get('nome_servico').strip()
+    preco_servico = request.form.get('preco_servico')
+    imagem_servico = request.form.get('imagem_servico') or 'img_gel.jpeg'
+
+    if nome_servico and preco_servico:
+        conn = get_db_connection()
+        try:
+            conn.execute('INSERT INTO servicos (nome, preco, imagem) VALUES (?, ?, ?)', 
+                         (nome_servico, float(preco_servico), imagem_servico))
+            conn.commit()
+            flash('Novo serviço cadastrado com sucesso!', 'success')
+        except sqlite3.IntegrityError:
+            flash('Este serviço já existe.', 'danger')
+        finally:
+            conn.close()
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/remover-servico/<int:servico_id>', methods=['POST'])
+def remover_servico(servico_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    conn.execute('DELETE FROM servicos WHERE id = ?', (servico_id,))
+    conn.commit()
+    conn.close()
+    flash('Serviço excluído!', 'success')
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/atualizar-preco', methods=['POST'])
+def atualizar_preco():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    servico_id = request.form.get('servico_id')
+    novo_preco = request.form.get('novo_preco')
+
+    if servico_id and novo_preco:
+        conn = get_db_connection()
+        conn.execute('UPDATE servicos SET preco = ? WHERE id = ?', (float(novo_preco), servico_id))
+        conn.commit()
+        conn.close()
+        flash('Preço alterado com sucesso!', 'success')
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/toggle-horario', methods=['POST'])
+def toggle_horario():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    horario_id = request.form.get('horario_id')
+    conn = get_db_connection()
+    h = conn.execute('SELECT ativo FROM horarios_config WHERE id = ?', (horario_id,)).fetchone()
+    if h:
+        novo_status = 0 if h['ativo'] == 1 else 1
+        conn.execute('UPDATE horarios_config SET ativo = ? WHERE id = ?', (novo_status, horario_id))
+        conn.commit()
+        flash('Status do horário alterado!', 'success')
+    conn.close()
+    return redirect(url_for('admin'))
+
+@app.route('/admin/adicionar-horario', methods=['POST'])
+def adicionar_horario():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    novo_horario = request.form.get('novo_horario').strip()
+    if novo_horario:
+        conn = get_db_connection()
+        try:
+            conn.execute('INSERT INTO horarios_config (hora, ativo) VALUES (?, 1)', (novo_horario,))
+            conn.commit()
+            flash('Horário adicionado com sucesso!', 'success')
+        except sqlite3.IntegrityError:
+            flash('Este horário já existe na lista.', 'danger')
+        finally:
+            conn.close()
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/alterar-senha', methods=['POST'])
+def alterar_senha():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    novo_usuario = request.form.get('novo_usuario').strip()
+    nova_senha = request.form.get('nova_senha')
+
+    if novo_usuario and nova_senha:
+        senha_hash = generate_password_hash(nova_senha)
+        conn = get_db_connection()
+        try:
+            conn.execute('UPDATE usuarios SET usuario = ?, senha = ? WHERE id = ?', 
+                         (novo_usuario, senha_hash, session['user_id']))
+            conn.commit()
+            session['username'] = novo_usuario
+            flash('Usuário e senha alterados com sucesso!', 'success')
+        except sqlite3.IntegrityError:
+            flash('Nome de usuário indisponível.', 'danger')
+        finally:
+            conn.close()
+
     return redirect(url_for('admin'))
 
 @app.route('/logout')

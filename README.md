@@ -1,6 +1,3 @@
-# Cath Unhas - Edição Luxo com Automação de Notificações
+# Cath Unhas - Plataforma Executive com Notificações Automáticas de WhatsApp (Green-API)
 
-Aplicação de gestão completa para Studio de Unhas:
-- Layout profissional integrado às fotos reais de procedimentos.
-- Sistema de disparo automático via WhatsApp API (Z-API/CallMeBot) e SMS (Twilio).
-- Painel de faturamento gerencial e controle completo de horários e preços.
+Ficheiro completo corrigido para deploy automático.

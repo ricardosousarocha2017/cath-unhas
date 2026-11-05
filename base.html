@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cath Unhas — Studio de Beleza & Nail Art Studio</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header class="navbar">
+        <div class="logo">💎 Cath Unhas</div>
+        <nav>
+            <a href="{{ url_for('home') }}">Início</a>
+            <a href="{{ url_for('booking') }}">Agendar Horário</a>
+            {% if session.get('logged_in') %}
+                <a href="{{ url_for('admin') }}" class="btn-admin-nav">📊 Painel Admin</a>
+                <a href="{{ url_for('logout') }}" class="btn-logout-nav">Sair</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Área Restrita</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <div class="main-wrapper">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <footer>
+        <p>&copy; 2026 Cath Unhas Studio — Excelência em Nail Design, Molde F1 & Banho de Gel.</p>
+    </footer>
+</body>
+</html>
