@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v21_fix_admin_route')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v22_debug_safe')
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -151,225 +151,246 @@ def init_db():
 init_db()
 
 def disparar_comprovantes_e_notificacoes(agendamento_id, nome, telefone, servico, preco, data, hora, forma_pagamento, valor_sinal, status_sinal, link_pagamento):
-    conn = get_db_connection()
-    configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
-    conn.close()
+    try:
+        conn = get_db_connection()
+        configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
+        conn.close()
 
-    target_wa = configs.get('whatsapp_admin', '5511963271437').strip()
-    green_id = configs.get('green_instance_id', '').strip()
-    green_token = configs.get('green_api_token', '').strip()
+        target_wa = configs.get('whatsapp_admin', '5511963271437').strip()
+        green_id = configs.get('green_instance_id', '').strip()
+        green_token = configs.get('green_api_token', '').strip()
 
-    msg_admin = (
-        f"🧾 *COMPROVANTE DE AGENDAMENTO (ADMIN)*\n"
-        f"📋 *ID da Reserva:* #{agendamento_id}\n"
-        f"👤 *Cliente:* {nome}\n"
-        f"📞 *Contato:* {telefone}\n"
-        f"✨ *Procedimento:* {servico}\n"
-        f"💰 *Valor Total:* R$ {preco:.2f}\n"
-        f"💳 *Sinal de Garantia:* R$ {valor_sinal:.2f} ({status_sinal})\n"
-        f"💵 *Forma de Pagamento:* {forma_pagamento}\n"
-        f"📅 *Data:* {data}\n"
-        f"⏰ *Horário:* {hora}"
-    )
+        msg_admin = (
+            f"🧾 *COMPROVANTE DE AGENDAMENTO (ADMIN)*\n"
+            f"📋 *ID da Reserva:* #{agendamento_id}\n"
+            f"👤 *Cliente:* {nome}\n"
+            f"📞 *Contato:* {telefone}\n"
+            f"✨ *Procedimento:* {servico}\n"
+            f"💰 *Valor Total:* R$ {preco:.2f}\n"
+            f"💳 *Sinal de Garantia:* R$ {valor_sinal:.2f} ({status_sinal})\n"
+            f"💵 *Forma de Pagamento:* {forma_pagamento}\n"
+            f"📅 *Data:* {data}\n"
+            f"⏰ *Horário:* {hora}"
+        )
 
-    if green_id and green_token and target_wa:
-        try:
+        if green_id and green_token and target_wa:
             url_green = f"https://7107.api.greenapi.com/waInstance{green_id}/sendMessage/{green_token}"
             headers = {'Content-Type': 'application/json'}
             requests.post(url_green, json={"chatId": f"{target_wa}@c.us", "message": msg_admin}, headers=headers, timeout=5)
-        except Exception as e:
-            print(f"Erro WhatsApp Admin: {e}")
+    except Exception as e:
+        print(f"Erro ao disparar WhatsApp: {e}")
 
 @app.route('/')
 def home():
-    conn = get_db_connection()
-    servicos = conn.execute('SELECT * FROM servicos').fetchall()
-    conn.close()
-    return render_template('home.html', servicos=servicos)
+    try:
+        conn = get_db_connection()
+        servicos = conn.execute('SELECT * FROM servicos').fetchall()
+        conn.close()
+        return render_template('home.html', servicos=servicos)
+    except Exception as e:
+        return f"Erro na página inicial: {e}", 500
 
 @app.route('/booking', methods=['GET', 'POST'])
 def booking():
-    conn = get_db_connection()
-    servicos = conn.execute('SELECT * FROM servicos').fetchall()
-    datas_disponiveis = conn.execute('SELECT * FROM datas_config WHERE ativo = 1 ORDER BY data ASC').fetchall()
-    horarios_ativos = conn.execute('SELECT * FROM horarios_config WHERE ativo = 1 ORDER BY hora ASC').fetchall()
-    configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
-    
-    valor_sinal_padrao = float(configs.get('valor_sinal_padrao', '30.00'))
-    link_cartao_padrao = configs.get('link_cartao_padrao', 'https://pay.mercadopago.com.br/checkout-exemplo')
-
-    if request.method == 'POST':
-        nome = request.form.get('nome')
-        telefone = request.form.get('telefone')
-        servico_id = request.form.get('servico_id')
-        data = request.form.get('data')
-        hora = request.form.get('hora')
-        forma_pagamento = request.form.get('forma_pagamento', 'Pix (QR Code / Copia e Cola)')
-
-        if 'Pix' in forma_pagamento:
-            status_sinal = 'Pix Enviado (A Confirmar)'
-        elif 'Crédito' in forma_pagamento or 'Débito' in forma_pagamento or 'Cartão' in forma_pagamento:
-            status_sinal = 'Link Cartão Emitido (Pendente)'
-        else:
-            status_sinal = 'Pagar Sinal no Studio'
-
-        dt_valida = conn.execute('SELECT * FROM datas_config WHERE data = ? AND ativo = 1', (data,)).fetchone()
-        if not dt_valida:
-            flash('A data selecionada não está disponível. Por favor escolha uma data liberada.', 'danger')
-            conn.close()
-            return redirect(url_for('booking'))
-
-        ocupado = conn.execute('SELECT * FROM agendamentos WHERE data = ? AND hora = ?', (data, hora)).fetchone()
-        if ocupado:
-            flash(f'O horário {hora} para o dia {data} já foi preenchido. Por favor selecione outro horário.', 'danger')
-            conn.close()
-            return redirect(url_for('booking'))
-
-        servico = conn.execute('SELECT * FROM servicos WHERE id = ?', (servico_id,)).fetchone()
+    try:
+        conn = get_db_connection()
+        servicos = conn.execute('SELECT * FROM servicos').fetchall()
+        datas_disponiveis = conn.execute('SELECT * FROM datas_config WHERE ativo = 1 ORDER BY data ASC').fetchall()
+        horarios_ativos = conn.execute('SELECT * FROM horarios_config WHERE ativo = 1 ORDER BY hora ASC').fetchall()
+        configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
         
-        if servico:
-            cursor = conn.cursor()
-            cursor.execute(
-                '''INSERT INTO agendamentos 
-                   (nome, telefone, servico, preco, data, hora, forma_pagamento, link_pagamento, valor_sinal, status_sinal) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                (nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, link_cartao_padrao, valor_sinal_padrao, status_sinal)
-            )
-            novo_id = cursor.lastrowid
-            conn.commit()
-            conn.close()
+        valor_sinal_padrao = float(configs.get('valor_sinal_padrao', '30.00'))
+        link_cartao_padrao = configs.get('link_cartao_padrao', 'https://pay.mercadopago.com.br/checkout-exemplo')
 
-            disparar_comprovantes_e_notificacoes(novo_id, nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, valor_sinal_padrao, status_sinal, link_cartao_padrao)
+        if request.method == 'POST':
+            nome = request.form.get('nome')
+            telefone = request.form.get('telefone')
+            servico_id = request.form.get('servico_id')
+            data = request.form.get('data')
+            hora = request.form.get('hora')
+            forma_pagamento = request.form.get('forma_pagamento', 'Pix (QR Code / Copia e Cola)')
 
-            return render_template('booking_sucesso.html', 
-                                   agendamento_id=novo_id,
-                                   nome=nome, 
-                                   telefone=telefone,
-                                   servico=servico['nome'], 
-                                   data=data, 
-                                   hora=hora, 
-                                   preco=servico['preco'],
-                                   forma_pagamento=forma_pagamento,
-                                   link_pagamento=link_cartao_padrao,
-                                   valor_sinal=valor_sinal_padrao,
-                                   status_sinal=status_sinal,
-                                   configs=configs)
+            if 'Pix' in forma_pagamento:
+                status_sinal = 'Pix Enviado (A Confirmar)'
+            elif 'Crédito' in forma_pagamento or 'Débito' in forma_pagamento or 'Cartão' in forma_pagamento:
+                status_sinal = 'Link Cartão Emitido (Pendente)'
+            else:
+                status_sinal = 'Pagar Sinal no Studio'
 
-    conn.close()
-    return render_template('booking.html', 
-                           servicos=servicos, 
-                           datas=datas_disponiveis, 
-                           horarios=horarios_ativos,
-                           configs=configs,
-                           valor_sinal_padrao=valor_sinal_padrao,
-                           link_cartao_padrao=link_cartao_padrao)
+            dt_valida = conn.execute('SELECT * FROM datas_config WHERE data = ? AND ativo = 1', (data,)).fetchone()
+            if not dt_valida:
+                flash('A data selecionada não está disponível. Por favor escolha uma data liberada.', 'danger')
+                conn.close()
+                return redirect(url_for('booking'))
+
+            ocupado = conn.execute('SELECT * FROM agendamentos WHERE data = ? AND hora = ?', (data, hora)).fetchone()
+            if ocupado:
+                flash(f'O horário {hora} para o dia {data} já foi preenchido. Por favor selecione outro horário.', 'danger')
+                conn.close()
+                return redirect(url_for('booking'))
+
+            servico = conn.execute('SELECT * FROM servicos WHERE id = ?', (servico_id,)).fetchone()
+            
+            if servico:
+                cursor = conn.cursor()
+                cursor.execute(
+                    '''INSERT INTO agendamentos 
+                       (nome, telefone, servico, preco, data, hora, forma_pagamento, link_pagamento, valor_sinal, status_sinal) 
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                    (nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, link_cartao_padrao, valor_sinal_padrao, status_sinal)
+                )
+                novo_id = cursor.lastrowid
+                conn.commit()
+                conn.close()
+
+                disparar_comprovantes_e_notificacoes(novo_id, nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, valor_sinal_padrao, status_sinal, link_cartao_padrao)
+
+                return render_template('booking_sucesso.html', 
+                                       agendamento_id=novo_id,
+                                       nome=nome, 
+                                       telefone=telefone,
+                                       servico=servico['nome'], 
+                                       data=data, 
+                                       hora=hora, 
+                                       preco=servico['preco'],
+                                       forma_pagamento=forma_pagamento,
+                                       link_pagamento=link_cartao_padrao,
+                                       valor_sinal=valor_sinal_padrao,
+                                       status_sinal=status_sinal,
+                                       configs=configs)
+
+        conn.close()
+        return render_template('booking.html', 
+                               servicos=servicos, 
+                               datas=datas_disponiveis, 
+                               horarios=horarios_ativos,
+                               configs=configs,
+                               valor_sinal_padrao=valor_sinal_padrao,
+                               link_cartao_padrao=link_cartao_padrao)
+    except Exception as e:
+        return f"Erro no agendamento: {e}", 500
 
 @app.route('/comprovante/<int:agendamento_id>')
 def comprovante(agendamento_id):
-    conn = get_db_connection()
-    agendamento = conn.execute('SELECT * FROM agendamentos WHERE id = ?', (agendamento_id,)).fetchone()
-    configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
-    conn.close()
+    try:
+        conn = get_db_connection()
+        agendamento = conn.execute('SELECT * FROM agendamentos WHERE id = ?', (agendamento_id,)).fetchone()
+        configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
+        conn.close()
 
-    if not agendamento:
-        flash('Comprovante não encontrado.', 'danger')
-        return redirect(url_for('home'))
+        if not agendamento:
+            flash('Comprovante não encontrado.', 'danger')
+            return redirect(url_for('home'))
 
-    return render_template('comprovante.html', agendamento=agendamento, configs=configs)
+        return render_template('comprovante.html', agendamento=agendamento, configs=configs)
+    except Exception as e:
+        return f"Erro ao gerar comprovante: {e}", 500
 
 @app.route('/api/horarios-ocupados/<data>')
 def horarios_ocupados(data):
-    conn = get_db_connection()
-    agendamentos = conn.execute('SELECT hora FROM agendamentos WHERE data = ?', (data,)).fetchall()
-    conn.close()
-    ocupados = [row['hora'] for row in agendamentos]
-    return jsonify(ocupados)
+    try:
+        conn = get_db_connection()
+        agendamentos = conn.execute('SELECT hora FROM agendamentos WHERE data = ?', (data,)).fetchall()
+        conn.close()
+        ocupados = [row['hora'] for row in agendamentos]
+        return jsonify(ocupados)
+    except Exception as e:
+        return jsonify([])
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        usuario_input = request.form.get('username') or request.form.get('usuario')
-        senha_input = request.form.get('password') or request.form.get('senha')
+    try:
+        if request.method == 'POST':
+            usuario_input = request.form.get('username') or request.form.get('usuario')
+            senha_input = request.form.get('password') or request.form.get('senha')
 
-        conn = get_db_connection()
-        user = conn.execute('SELECT * FROM usuarios WHERE usuario = ?', (usuario_input,)).fetchone()
-        conn.close()
+            conn = get_db_connection()
+            user = conn.execute('SELECT * FROM usuarios WHERE usuario = ?', (usuario_input,)).fetchone()
+            conn.close()
 
-        if user and check_password_hash(user['senha'], senha_input):
-            session['logged_in'] = True
-            session['user_id'] = user['id']
-            session['username'] = user['usuario']
-            flash('Login efetuado com sucesso!', 'success')
-            return redirect(url_for('admin'))
-        else:
-            flash('Usuário ou senha incorretos.', 'danger')
+            if user and check_password_hash(user['senha'], senha_input):
+                session['logged_in'] = True
+                session['user_id'] = user['id']
+                session['username'] = user['usuario']
+                flash('Login efetuado com sucesso!', 'success')
+                return redirect(url_for('admin'))
+            else:
+                flash('Usuário ou senha incorretos.', 'danger')
 
-    return render_template('login.html')
+        return render_template('login.html')
+    except Exception as e:
+        return f"Erro no login: {e}", 500
 
 @app.route('/admin')
 def admin():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    conn = get_db_connection()
-    agendamentos = conn.execute('SELECT * FROM agendamentos ORDER BY data ASC, hora ASC').fetchall()
-    servicos = conn.execute('SELECT * FROM servicos').fetchall()
-    datas_config = conn.execute('SELECT * FROM datas_config ORDER BY data ASC').fetchall()
-    horarios_config = conn.execute('SELECT * FROM horarios_config ORDER BY hora ASC').fetchall()
-    configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
+    try:
+        conn = get_db_connection()
+        agendamentos = conn.execute('SELECT * FROM agendamentos ORDER BY data ASC, hora ASC').fetchall()
+        servicos = conn.execute('SELECT * FROM servicos').fetchall()
+        datas_config = conn.execute('SELECT * FROM datas_config ORDER BY data ASC').fetchall()
+        horarios_config = conn.execute('SELECT * FROM horarios_config ORDER BY hora ASC').fetchall()
+        configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
 
-    total_faturamento = conn.execute("SELECT SUM(preco) FROM agendamentos").fetchone()[0] or 0.0
-    total_atendimentos = len(agendamentos)
-    ticket_medio = (total_faturamento / total_atendimentos) if total_atendimentos > 0 else 0.0
+        total_faturamento = conn.execute("SELECT SUM(preco) FROM agendamentos").fetchone()[0] or 0.0
+        total_atendimentos = len(agendamentos)
+        ticket_medio = (total_faturamento / total_atendimentos) if total_atendimentos > 0 else 0.0
 
-    sinais_pix = len([a for a in agendamentos if 'Pix' in (a['forma_pagamento'] or '')])
-    sinais_cartao = len([a for a in agendamentos if 'Crédito' in (a['forma_pagamento'] or '') or 'Débito' in (a['forma_pagamento'] or '') or 'Cartão' in (a['forma_pagamento'] or '')])
-    sinais_studio = len([a for a in agendamentos if 'Studio' in (a['forma_pagamento'] or '')])
+        sinais_pix = len([a for a in agendamentos if 'Pix' in (a['forma_pagamento'] or '')])
+        sinais_cartao = len([a for a in agendamentos if 'Crédito' in (a['forma_pagamento'] or '') or 'Débito' in (a['forma_pagamento'] or '') or 'Cartão' in (a['forma_pagamento'] or '')])
+        sinais_studio = len([a for a in agendamentos if 'Studio' in (a['forma_pagamento'] or '')])
 
-    relatorio_servicos = conn.execute('''
-        SELECT servico, COUNT(*) as qtd, SUM(preco) as total 
-        FROM agendamentos 
-        GROUP BY servico 
-        ORDER BY total DESC
-    ''').fetchall()
+        relatorio_servicos = conn.execute('''
+            SELECT servico, COUNT(*) as qtd, SUM(preco) as total 
+            FROM agendamentos 
+            GROUP BY servico 
+            ORDER BY total DESC
+        ''').fetchall()
 
-    imagens_disponiveis = []
-    if os.path.exists(app.config['UPLOAD_FOLDER']):
-        for f in os.listdir(app.config['UPLOAD_FOLDER']):
-            if allowed_file(f):
-                imagens_disponiveis.append(f)
-    imagens_disponiveis.sort()
+        imagens_disponiveis = []
+        if os.path.exists(app.config['UPLOAD_FOLDER']):
+            for f in os.listdir(app.config['UPLOAD_FOLDER']):
+                if allowed_file(f):
+                    imagens_disponiveis.append(f)
+        imagens_disponiveis.sort()
 
-    conn.close()
+        conn.close()
 
-    return render_template('admin.html', 
-                           agendamentos=agendamentos, 
-                           servicos=servicos, 
-                           datas_config=datas_config,
-                           horarios_config=horarios_config, 
-                           configs=configs,
-                           username=session.get('username'),
-                           total_faturamento=total_faturamento,
-                           total_atendimentos=total_atendimentos,
-                           ticket_medio=ticket_medio,
-                           sinais_pix=sinais_pix,
-                           sinais_cartao=sinais_cartao,
-                           sinais_studio=sinais_studio,
-                           relatorio_servicos=relatorio_servicos,
-                           imagens_disponiveis=imagens_disponiveis)
+        return render_template('admin.html', 
+                               agendamentos=agendamentos, 
+                               servicos=servicos, 
+                               datas_config=datas_config,
+                               horarios=horarios_config, 
+                               configs=configs,
+                               username=session.get('username'),
+                               total_faturamento=total_faturamento,
+                               total_atendimentos=total_atendimentos,
+                               ticket_medio=ticket_medio,
+                               sinais_pix=sinais_pix,
+                               sinais_cartao=sinais_cartao,
+                               sinais_studio=sinais_studio,
+                               relatorio_servicos=relatorio_servicos,
+                               imagens_disponiveis=imagens_disponiveis)
+    except Exception as e:
+        return f"Erro interno no Painel Admin: {e}", 500
 
 @app.route('/admin/alterar-status-sinal/<int:agendamento_id>', methods=['POST'])
 def alterar_status_sinal(agendamento_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    novo_status_sinal = request.form.get('novo_status_sinal')
-    if novo_status_sinal:
-        conn = get_db_connection()
-        conn.execute('UPDATE agendamentos SET status_sinal = ? WHERE id = ?', (novo_status_sinal, agendamento_id))
-        conn.commit()
-        conn.close()
-        flash(f'Status do sinal atualizado para "{novo_status_sinal}"!', 'success')
+    try:
+        novo_status_sinal = request.form.get('novo_status_sinal')
+        if novo_status_sinal:
+            conn = get_db_connection()
+            conn.execute('UPDATE agendamentos SET status_sinal = ? WHERE id = ?', (novo_status_sinal, agendamento_id))
+            conn.commit()
+            conn.close()
+            flash(f'Status do sinal atualizado para "{novo_status_sinal}"!', 'success')
+    except Exception as e:
+        flash(f'Erro ao alterar status: {e}', 'danger')
 
     return redirect(url_for('admin'))
 
@@ -378,36 +399,40 @@ def atualizar_sinal_pix():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    valor_sinal = request.form.get('valor_sinal_padrao', '').strip()
-    pix_chave = request.form.get('pix_chave', '').strip()
-    pix_titular = request.form.get('pix_titular', '').strip()
-    pix_banco = request.form.get('pix_banco', '').strip()
-    link_cartao = request.form.get('link_cartao_padrao', '').strip()
+    try:
+        valor_sinal = request.form.get('valor_sinal_padrao', '').strip()
+        pix_chave = request.form.get('pix_chave', '').strip()
+        pix_titular = request.form.get('pix_titular', '').strip()
+        pix_banco = request.form.get('pix_banco', '').strip()
+        link_cartao = request.form.get('link_cartao_padrao', '').strip()
 
-    conn = get_db_connection()
-    
-    if valor_sinal:
-        conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('valor_sinal_padrao', ?)", (valor_sinal,))
-    if pix_chave:
-        conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_chave', ?)", (pix_chave,))
-    if pix_titular:
-        conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_titular', ?)", (pix_titular,))
-    if pix_banco:
-        conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_banco', ?)", (pix_banco,))
-    if link_cartao:
-        conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('link_cartao_padrao', ?)", (link_cartao,))
+        conn = get_db_connection()
+        
+        if valor_sinal:
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('valor_sinal_padrao', ?)", (valor_sinal,))
+        if pix_chave:
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_chave', ?)", (pix_chave,))
+        if pix_titular:
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_titular', ?)", (pix_titular,))
+        if pix_banco:
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_banco', ?)", (pix_banco,))
+        if link_cartao:
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('link_cartao_padrao', ?)", (link_cartao,))
 
-    if 'qr_code_file' in request.files and request.files['qr_code_file'].filename != '':
-        file = request.files['qr_code_file']
-        if file and allowed_file(file.filename):
-            filename = secure_filename('qrcode_pix.png')
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('qr_code_image', ?)", (filename,))
+        if 'qr_code_file' in request.files and request.files['qr_code_file'].filename != '':
+            file = request.files['qr_code_file']
+            if file and allowed_file(file.filename):
+                filename = secure_filename('qrcode_pix.png')
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('qr_code_image', ?)", (filename,))
 
-    conn.commit()
-    conn.close()
+        conn.commit()
+        conn.close()
 
-    flash('Configurações de Sinal e Pagamento atualizadas com sucesso!', 'success')
+        flash('Configurações de Sinal e Pagamento atualizadas com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro ao atualizar configurações: {e}', 'danger')
+
     return redirect(url_for('admin'))
 
 @app.route('/admin/adicionar-data', methods=['POST'])
@@ -417,15 +442,16 @@ def adicionar_data():
 
     nova_data = request.form.get('nova_data', '').strip()
     if nova_data:
-        conn = get_db_connection()
         try:
+            conn = get_db_connection()
             conn.execute('INSERT INTO datas_config (data, ativo) VALUES (?, 1)', (nova_data,))
             conn.commit()
+            conn.close()
             flash(f'Data {nova_data} liberada no sistema!', 'success')
         except sqlite3.IntegrityError:
             flash('Data já existente.', 'danger')
-        finally:
-            conn.close()
+        except Exception as e:
+            flash(f'Erro: {e}', 'danger')
 
     return redirect(url_for('admin'))
 
@@ -434,14 +460,18 @@ def toggle_data(data_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    conn = get_db_connection()
-    d = conn.execute('SELECT ativo FROM datas_config WHERE id = ?', (data_id,)).fetchone()
-    if d:
-        novo_status = 0 if d['ativo'] == 1 else 1
-        conn.execute('UPDATE datas_config SET ativo = ? WHERE id = ?', (novo_status, data_id))
-        conn.commit()
-        flash('Status da data alterado!', 'success')
-    conn.close()
+    try:
+        conn = get_db_connection()
+        d = conn.execute('SELECT ativo FROM datas_config WHERE id = ?', (data_id,)).fetchone()
+        if d:
+            novo_status = 0 if d['ativo'] == 1 else 1
+            conn.execute('UPDATE datas_config SET ativo = ? WHERE id = ?', (novo_status, data_id))
+            conn.commit()
+            flash('Status da data alterado!', 'success')
+        conn.close()
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
+
     return redirect(url_for('admin'))
 
 @app.route('/admin/remover-data/<int:data_id>', methods=['POST'])
@@ -449,11 +479,15 @@ def remover_data(data_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    conn = get_db_connection()
-    conn.execute('DELETE FROM datas_config WHERE id = ?', (data_id,))
-    conn.commit()
-    conn.close()
-    flash('Data removida!', 'success')
+    try:
+        conn = get_db_connection()
+        conn.execute('DELETE FROM datas_config WHERE id = ?', (data_id,))
+        conn.commit()
+        conn.close()
+        flash('Data removida!', 'success')
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
+
     return redirect(url_for('admin'))
 
 @app.route('/admin/adicionar-horario', methods=['POST'])
@@ -463,15 +497,16 @@ def adicionar_horario():
 
     novo_horario = request.form.get('novo_horario', '').strip()
     if novo_horario:
-        conn = get_db_connection()
         try:
+            conn = get_db_connection()
             conn.execute('INSERT INTO horarios_config (hora, ativo) VALUES (?, 1)', (novo_horario,))
             conn.commit()
+            conn.close()
             flash('Horário adicionado!', 'success')
         except sqlite3.IntegrityError:
             flash('Este horário já existe.', 'danger')
-        finally:
-            conn.close()
+        except Exception as e:
+            flash(f'Erro: {e}', 'danger')
 
     return redirect(url_for('admin'))
 
@@ -480,14 +515,18 @@ def toggle_horario(horario_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    conn = get_db_connection()
-    h = conn.execute('SELECT ativo FROM horarios_config WHERE id = ?', (horario_id,)).fetchone()
-    if h:
-        novo_status = 0 if h['ativo'] == 1 else 1
-        conn.execute('UPDATE horarios_config SET ativo = ? WHERE id = ?', (novo_status, horario_id))
-        conn.commit()
-        flash('Status do horário alterado!', 'success')
-    conn.close()
+    try:
+        conn = get_db_connection()
+        h = conn.execute('SELECT ativo FROM horarios_config WHERE id = ?', (horario_id,)).fetchone()
+        if h:
+            novo_status = 0 if h['ativo'] == 1 else 1
+            conn.execute('UPDATE horarios_config SET ativo = ? WHERE id = ?', (novo_status, horario_id))
+            conn.commit()
+            flash('Status do horário alterado!', 'success')
+        conn.close()
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
+
     return redirect(url_for('admin'))
 
 @app.route('/admin/remover-horario/<int:horario_id>', methods=['POST'])
@@ -495,11 +534,15 @@ def remover_horario(horario_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    conn = get_db_connection()
-    conn.execute('DELETE FROM horarios_config WHERE id = ?', (horario_id,))
-    conn.commit()
-    conn.close()
-    flash('Horário removido!', 'success')
+    try:
+        conn = get_db_connection()
+        conn.execute('DELETE FROM horarios_config WHERE id = ?', (horario_id,))
+        conn.commit()
+        conn.close()
+        flash('Horário removido!', 'success')
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
+
     return redirect(url_for('admin'))
 
 @app.route('/admin/remover-agendamento/<int:agendamento_id>', methods=['POST'])
@@ -507,11 +550,15 @@ def remover_agendamento(agendamento_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    conn = get_db_connection()
-    conn.execute('DELETE FROM agendamentos WHERE id = ?', (agendamento_id,))
-    conn.commit()
-    conn.close()
-    flash('Agendamento cancelado com sucesso!', 'success')
+    try:
+        conn = get_db_connection()
+        conn.execute('DELETE FROM agendamentos WHERE id = ?', (agendamento_id,))
+        conn.commit()
+        conn.close()
+        flash('Agendamento cancelado com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
+
     return redirect(url_for('admin'))
 
 @app.route('/admin/atualizar-config-api', methods=['POST'])
@@ -519,17 +566,20 @@ def atualizar_config_api():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    conn = get_db_connection()
-    campos = ['whatsapp_admin', 'sms_admin', 'email_admin', 'green_instance_id', 'green_api_token']
-    
-    for c in campos:
-        val = request.form.get(c, '').strip()
-        conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES (?, ?)", (c, val))
+    try:
+        conn = get_db_connection()
+        campos = ['whatsapp_admin', 'sms_admin', 'email_admin', 'green_instance_id', 'green_api_token']
         
-    conn.commit()
-    conn.close()
+        for c in campos:
+            val = request.form.get(c, '').strip()
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES (?, ?)", (c, val))
+            
+        conn.commit()
+        conn.close()
+        flash('Configurações salvas!', 'success')
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
 
-    flash('Configurações salvas!', 'success')
     return redirect(url_for('admin'))
 
 @app.route('/admin/alterar-senha', methods=['POST'])
@@ -537,30 +587,29 @@ def alterar_senha():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    novo_usuario = request.form.get('novo_usuario', '').strip()
-    nova_senha = request.form.get('nova_senha', '').strip()
-    confirmar_senha = request.form.get('confirmar_senha', '').strip()
-
-    if not novo_usuario or not nova_senha:
-        flash('Preencha todos os campos.', 'danger')
-        return redirect(url_for('admin'))
-
-    if nova_senha != confirmar_senha:
-        flash('As senhas não coincidem.', 'danger')
-        return redirect(url_for('admin'))
-
-    senha_hash = generate_password_hash(nova_senha)
-    conn = get_db_connection()
     try:
+        novo_usuario = request.form.get('novo_usuario', '').strip()
+        nova_senha = request.form.get('nova_senha', '').strip()
+        confirmar_senha = request.form.get('confirmar_senha', '').strip()
+
+        if not novo_usuario or not nova_senha:
+            flash('Preencha todos os campos.', 'danger')
+            return redirect(url_for('admin'))
+
+        if nova_senha != confirmar_senha:
+            flash('As senhas não coincidem.', 'danger')
+            return redirect(url_for('admin'))
+
+        senha_hash = generate_password_hash(nova_senha)
+        conn = get_db_connection()
         conn.execute('UPDATE usuarios SET usuario = ?, senha = ? WHERE id = ?', 
                      (novo_usuario, senha_hash, session['user_id']))
         conn.commit()
         session['username'] = novo_usuario
-        flash('Login e senha atualizados!', 'success')
-    except sqlite3.IntegrityError:
-        flash('Usuário já em uso.', 'danger')
-    finally:
         conn.close()
+        flash('Login e senha atualizados!', 'success')
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
 
     return redirect(url_for('admin'))
 
@@ -569,69 +618,29 @@ def adicionar_servico():
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    nome_servico = request.form.get('nome_servico').strip()
-    preco_servico = request.form.get('preco_servico')
-    imagem_servico = 'banho_gel.jpeg'
-    
-    if 'foto_file' in request.files and request.files['foto_file'].filename != '':
-        file = request.files['foto_file']
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            imagem_servico = filename
-    elif request.form.get('imagem_url'):
-        imagem_servico = request.form.get('imagem_url').strip()
-    elif request.form.get('imagem_servico'):
-        imagem_servico = request.form.get('imagem_servico')
+    try:
+        nome_servico = request.form.get('nome_servico').strip()
+        preco_servico = request.form.get('preco_servico')
+        imagem_servico = 'banho_gel.jpeg'
+        
+        if 'foto_file' in request.files and request.files['foto_file'].filename != '':
+            file = request.files['foto_file']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                imagem_servico = filename
+        elif request.form.get('imagem_url'):
+            imagem_servico = request.form.get('imagem_url').strip()
 
-    if nome_servico and preco_servico:
-        conn = get_db_connection()
-        try:
+        if nome_servico and preco_servico:
+            conn = get_db_connection()
             conn.execute('INSERT INTO servicos (nome, preco, imagem) VALUES (?, ?, ?)', 
                          (nome_servico, float(preco_servico), imagem_servico))
             conn.commit()
-            flash('Serviço cadastrado com foto!', 'success')
-        except sqlite3.IntegrityError:
-            flash('Serviço já existente.', 'danger')
-        finally:
             conn.close()
-
-    return redirect(url_for('admin'))
-
-@app.route('/admin/atualizar-servico-foto', methods=['POST'])
-def atualizar_servico_foto():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    servico_id = request.form.get('servico_id')
-    novo_preco = request.form.get('novo_preco')
-    imagem_selecionada = request.form.get('imagem_servico')
-    url_imagem = request.form.get('imagem_url', '').strip()
-
-    imagem_final = None
-
-    if 'nova_foto_file' in request.files and request.files['nova_foto_file'].filename != '':
-        file = request.files['nova_foto_file']
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            imagem_final = filename
-
-    if not imagem_final and url_imagem:
-        imagem_final = url_imagem
-
-    if not imagem_final and imagem_selecionada:
-        imagem_final = imagem_selecionada
-
-    if servico_id and novo_preco:
-        conn = get_db_connection()
-        if imagem_final:
-            conn.execute('UPDATE servicos SET preco = ?, imagem = ? WHERE id = ?', (float(novo_preco), imagem_final, servico_id))
-        else:
-            conn.execute('UPDATE servicos SET preco = ? WHERE id = ?', (float(novo_preco), servico_id))
-        conn.commit()
-        conn.close()
-        flash('Serviço e foto atualizados com sucesso!', 'success')
+            flash('Serviço cadastrado com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro ao cadastrar serviço: {e}', 'danger')
 
     return redirect(url_for('admin'))
 
@@ -640,11 +649,14 @@ def remover_servico(servico_id):
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
-    conn = get_db_connection()
-    conn.execute('DELETE FROM servicos WHERE id = ?', (servico_id,))
-    conn.commit()
-    conn.close()
-    flash('Serviço removido!', 'success')
+    try:
+        conn = get_db_connection()
+        conn.execute('DELETE FROM servicos WHERE id = ?', (servico_id,))
+        conn.commit()
+        conn.close()
+        flash('Serviço removido!', 'success')
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
 
     return redirect(url_for('admin'))
 
