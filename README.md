@@ -1,3 +1,3 @@
-# Cathelin Eloim | Nail Designer - Personalização de Fotos dos Procedimentos Exclusivos
+# Cathelin Eloim | Nail Designer - Suporte Completo a Upload de Fotos de Procedimentos
 
-Atribuição exata das fotos enviadas para cada um dos procedimentos da página inicial.
+Atualização com funcionalidade de envio direto de fotos (Upload) no Painel Administrativo.

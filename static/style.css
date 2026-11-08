@@ -496,8 +496,8 @@ h1, h2, h3, .logo .brand-title {
 
 .services-admin-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.2rem;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.4rem;
     margin-top: 1rem;
 }
 
@@ -509,7 +509,7 @@ h1, h2, h3, .logo .brand-title {
 }
 
 .thumb-mini {
-    height: 110px;
+    height: 140px;
     border-radius: 8px;
     overflow: hidden;
     margin-bottom: 0.8rem;
@@ -524,10 +524,51 @@ h1, h2, h3, .logo .brand-title {
 .form-flex-sm {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.6rem;
 }
 
-.serv-title { font-weight: 700; color: #2b1520; }
+.upload-field-box {
+    background: white;
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid #e6d3dc;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.upload-field-box label {
+    font-size: 0.75rem;
+    color: #4a1e34;
+    font-weight: 600;
+}
+
+.file-input-mini {
+    font-size: 0.75rem;
+}
+
+.input-mini-text {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    border: 1px solid #d8b6c5;
+    border-radius: 6px;
+}
+
+.select-mini {
+    padding: 4px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    border: 1px solid #d8b6c5;
+}
+
+.file-input-styled {
+    padding: 8px;
+    background: #fcf6f9;
+    border: 1px dashed #d8b6c5;
+    border-radius: 8px;
+}
+
+.serv-title { font-weight: 700; color: #2b1520; font-size: 1rem; }
 
 .btn-danger {
     background: #dc3545;

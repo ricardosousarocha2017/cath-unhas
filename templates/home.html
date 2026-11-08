@@ -64,7 +64,11 @@
     {% for s in servicos %}
     <div class="service-card-executive">
         <div class="card-thumb">
-            <img src="{{ url_for('static', filename='images/' + s['imagem']) }}" alt="{{ s['nome'] }}">
+            {% if s['imagem'].startswith('http://') or s['imagem'].startswith('https://') %}
+                <img src="{{ s['imagem'] }}" alt="{{ s['nome'] }}">
+            {% else %}
+                <img src="{{ url_for('static', filename='images/' + s['imagem']) }}" alt="{{ s['nome'] }}">
+            {% endif %}
         </div>
         <div class="card-content">
             <h3>{{ s['nome'] }}</h3>

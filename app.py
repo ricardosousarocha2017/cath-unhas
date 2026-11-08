@@ -1,14 +1,25 @@
 import os
 import sqlite3
 import requests
-from urllib.parse import quote
+from werkzeug.utils import secure_filename
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_2026_v8')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_upload_v9')
+
+# Configuração de pasta de uploads de imagens
+UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
 DB_NAME = 'database.db'
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def get_db_connection():
     conn = sqlite3.connect(DB_NAME)
@@ -81,7 +92,6 @@ def init_db():
     for c_chave, c_val in configs_iniciais:
         cursor.execute('INSERT OR IGNORE INTO config (chave, valor) VALUES (?, ?)', (c_chave, c_val))
 
-    # Mapeamento correto dos procedimentos com suas imagens específicas
     servicos_iniciais = [
         ('Alongamento Molde F1', 150.00, 'alongamento_molde.jpeg'),
         ('Manutenção de Molde F1', 90.00, 'manutencao_molde.jpeg'),
@@ -140,7 +150,6 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
         f"⏰ *Horário:* {hora}"
     )
 
-    # 1. WhatsApp via Green-API
     if green_id and green_token and target_wa:
         try:
             url_green = f"https://7107.api.greenapi.com/waInstance{green_id}/sendMessage/{green_token}"
@@ -150,7 +159,6 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
         except Exception as e:
             print(f"Erro WhatsApp Green-API: {e}")
 
-    # 2. SMS via Twilio
     if tw_sid and tw_token and tw_from and target_sms:
         try:
             sms_body = f"Cath Unhas: Novo Agendamento - {nome} ({servico}) em {data} as {hora}. R$ {preco:.2f}"
@@ -164,7 +172,6 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
         except Exception as e:
             print(f"Erro SMS Twilio: {e}")
 
-    # 3. Telegram
     if tg_token and tg_chat:
         try:
             url_tg = f"https://api.telegram.org/bot{tg_token}/sendMessage"
@@ -173,7 +180,6 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
         except Exception as e:
             print(f"Erro Telegram: {e}")
 
-    # 4. E-mail Resend
     if resend_key and email_admin:
         try:
             url_resend = "https://api.resend.com/emails"
@@ -280,6 +286,14 @@ def admin():
         ORDER BY total DESC
     ''').fetchall()
 
+    # Buscar todas as imagens da pasta static/images para disponibilizar no dropdown
+    imagens_disponiveis = []
+    if os.path.exists(app.config['UPLOAD_FOLDER']):
+        for f in os.listdir(app.config['UPLOAD_FOLDER']):
+            if allowed_file(f):
+                imagens_disponiveis.append(f)
+    imagens_disponiveis.sort()
+
     conn.close()
 
     return render_template('admin.html', 
@@ -291,7 +305,8 @@ def admin():
                            total_faturamento=total_faturamento,
                            total_atendimentos=total_atendimentos,
                            ticket_medio=ticket_medio,
-                           relatorio_servicos=relatorio_servicos)
+                           relatorio_servicos=relatorio_servicos,
+                           imagens_disponiveis=imagens_disponiveis)
 
 @app.route('/admin/atualizar-config-api', methods=['POST'])
 def atualizar_config_api():
@@ -350,7 +365,20 @@ def adicionar_servico():
 
     nome_servico = request.form.get('nome_servico').strip()
     preco_servico = request.form.get('preco_servico')
-    imagem_servico = request.form.get('imagem_servico') or 'banho_gel.jpeg'
+    
+    # Processar upload de imagem ou seleção existente ou URL externa
+    imagem_servico = 'banho_gel.jpeg'
+    
+    if 'foto_file' in request.files and request.files['foto_file'].filename != '':
+        file = request.files['foto_file']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            imagem_servico = filename
+    elif request.form.get('imagem_url'):
+        imagem_servico = request.form.get('imagem_url').strip()
+    elif request.form.get('imagem_servico'):
+        imagem_servico = request.form.get('imagem_servico')
 
     if nome_servico and preco_servico:
         conn = get_db_connection()
@@ -358,11 +386,52 @@ def adicionar_servico():
             conn.execute('INSERT INTO servicos (nome, preco, imagem) VALUES (?, ?, ?)', 
                          (nome_servico, float(preco_servico), imagem_servico))
             conn.commit()
-            flash('Novo serviço cadastrado com sucesso!', 'success')
+            flash('Novo serviço cadastrado com foto!', 'success')
         except sqlite3.IntegrityError:
             flash('Este serviço já existe.', 'danger')
         finally:
             conn.close()
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/atualizar-servico-foto', methods=['POST'])
+def atualizar_servico_foto():
+    """Permite alterar o preço e/ou enviar uma NOVA foto do computador para o serviço."""
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    servico_id = request.form.get('servico_id')
+    novo_preco = request.form.get('novo_preco')
+    imagem_selecionada = request.form.get('imagem_servico')
+    url_imagem = request.form.get('imagem_url', '').strip()
+
+    imagem_final = None
+
+    # Priority 1: Arquivo enviado direto do computador/celular
+    if 'nova_foto_file' in request.files and request.files['nova_foto_file'].filename != '':
+        file = request.files['nova_foto_file']
+        if file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            imagem_final = filename
+
+    # Priority 2: URL de imagem externa
+    if not imagem_final and url_imagem:
+        imagem_final = url_imagem
+
+    # Priority 3: Seleção do dropdown existente
+    if not imagem_final and imagem_selecionada:
+        imagem_final = imagem_selecionada
+
+    if servico_id and novo_preco:
+        conn = get_db_connection()
+        if imagem_final:
+            conn.execute('UPDATE servicos SET preco = ?, imagem = ? WHERE id = ?', (float(novo_preco), imagem_final, servico_id))
+        else:
+            conn.execute('UPDATE servicos SET preco = ? WHERE id = ?', (float(novo_preco), servico_id))
+        conn.commit()
+        conn.close()
+        flash('Serviço e Imagem atualizados com sucesso!', 'success')
 
     return redirect(url_for('admin'))
 
@@ -376,27 +445,6 @@ def remover_servico(servico_id):
     conn.commit()
     conn.close()
     flash('Serviço excluído!', 'success')
-
-    return redirect(url_for('admin'))
-
-@app.route('/admin/atualizar-preco', methods=['POST'])
-def atualizar_preco():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    servico_id = request.form.get('servico_id')
-    novo_preco = request.form.get('novo_preco')
-    nova_imagem = request.form.get('imagem_servico')
-
-    if servico_id and novo_preco:
-        conn = get_db_connection()
-        if nova_imagem:
-            conn.execute('UPDATE servicos SET preco = ?, imagem = ? WHERE id = ?', (float(novo_preco), nova_imagem, servico_id))
-        else:
-            conn.execute('UPDATE servicos SET preco = ? WHERE id = ?', (float(novo_preco), servico_id))
-        conn.commit()
-        conn.close()
-        flash('Serviço atualizado com sucesso!', 'success')
 
     return redirect(url_for('admin'))
 
