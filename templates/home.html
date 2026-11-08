@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Bio Instagram Style Header Banner -->
+<!-- Bio Instagram Style Header Banner em Rosa Delicado -->
 <section class="insta-profile-hero">
     <div class="insta-hero-card">
         <div class="profile-avatar-container">
@@ -21,14 +21,14 @@
                 👑 Especialista em Molde F1, Banho de Gel e Recuperação de Unhas Roídas
             </p>
             <div class="profile-actions">
-                <a href="{{ url_for('booking') }}" class="btn-gold-action">👑 Agendar Meu Horário</a>
+                <a href="{{ url_for('booking') }}" class="btn-pink-action">👑 Agendar Meu Horário</a>
                 <a href="https://instagram.com/cath_unhass" target="_blank" class="btn-insta-outline">📸 Ver Instagram @cath_unhass</a>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Destaques Estilo Stories -->
+<!-- Destaques Estilo Stories em Rosa Soft -->
 <section class="highlights-section">
     <h3 class="highlights-title">Destaques</h3>
     <div class="highlights-grid">
@@ -77,27 +77,5 @@
         </div>
     </div>
     {% endfor %}
-</section>
-
-<section class="portfolio-section">
-    <h2 class="section-title">Galeria de Trabalhos @cath_unhass</h2>
-    <div class="portfolio-grid">
-        <div class="portfolio-item">
-            <img src="{{ url_for('static', filename='images/alongamento_molde.jpeg') }}" alt="Alongamento Molde F1">
-            <div class="portfolio-caption">Alongamento Molde F1 — Branco Nude</div>
-        </div>
-        <div class="portfolio-item">
-            <img src="{{ url_for('static', filename='images/manutencao_molde.jpeg') }}" alt="Manutenção Molde F1">
-            <div class="portfolio-caption">Manutenção Molde F1 — Francesinha & Rosa</div>
-        </div>
-        <div class="portfolio-item">
-            <img src="{{ url_for('static', filename='images/banho_gel.jpeg') }}" alt="Banho de Gel">
-            <div class="portfolio-caption">Banho de Gel — Corações Românticos</div>
-        </div>
-        <div class="portfolio-item">
-            <img src="{{ url_for('static', filename='images/manutencao_banho_gel.jpeg') }}" alt="Manutenção Banho de Gel">
-            <div class="portfolio-caption">Manutenção Banho de Gel — Dourado & Pedrarias</div>
-        </div>
-    </div>
 </section>
 {% endblock %}

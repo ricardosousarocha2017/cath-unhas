@@ -6,9 +6,8 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_upload_v9')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_rosa_v10')
 
-# Configuração de pasta de uploads de imagens
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -188,8 +187,8 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
                 "to": [email_admin],
                 "subject": f"💅 NOVO AGENDAMENTO: {nome} - {servico}",
                 "html": f"""
-                <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #f7f2f5; border-radius: 12px;">
-                    <h2 style="color: #421e2f;">💅 Novo Agendamento Confirmado!</h2>
+                <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #fdf0f5; border-radius: 12px;">
+                    <h2 style="color: #d63384;">💅 Novo Agendamento Confirmado!</h2>
                     <ul style="line-height: 1.8;">
                         <li><strong>Cliente:</strong> {nome}</li>
                         <li><strong>Contato:</strong> {telefone}</li>
@@ -286,7 +285,6 @@ def admin():
         ORDER BY total DESC
     ''').fetchall()
 
-    # Buscar todas as imagens da pasta static/images para disponibilizar no dropdown
     imagens_disponiveis = []
     if os.path.exists(app.config['UPLOAD_FOLDER']):
         for f in os.listdir(app.config['UPLOAD_FOLDER']):
@@ -366,7 +364,6 @@ def adicionar_servico():
     nome_servico = request.form.get('nome_servico').strip()
     preco_servico = request.form.get('preco_servico')
     
-    # Processar upload de imagem ou seleção existente ou URL externa
     imagem_servico = 'banho_gel.jpeg'
     
     if 'foto_file' in request.files and request.files['foto_file'].filename != '':
@@ -396,7 +393,6 @@ def adicionar_servico():
 
 @app.route('/admin/atualizar-servico-foto', methods=['POST'])
 def atualizar_servico_foto():
-    """Permite alterar o preço e/ou enviar uma NOVA foto do computador para o serviço."""
     if not session.get('logged_in'):
         return redirect(url_for('login'))
 
@@ -407,7 +403,6 @@ def atualizar_servico_foto():
 
     imagem_final = None
 
-    # Priority 1: Arquivo enviado direto do computador/celular
     if 'nova_foto_file' in request.files and request.files['nova_foto_file'].filename != '':
         file = request.files['nova_foto_file']
         if file and allowed_file(file.filename):
@@ -415,11 +410,9 @@ def atualizar_servico_foto():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             imagem_final = filename
 
-    # Priority 2: URL de imagem externa
     if not imagem_final and url_imagem:
         imagem_final = url_imagem
 
-    # Priority 3: Seleção do dropdown existente
     if not imagem_final and imagem_selecionada:
         imagem_final = imagem_selecionada
 

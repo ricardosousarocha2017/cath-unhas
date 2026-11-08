@@ -6,8 +6,8 @@
 }
 
 body {
-    background-color: #faf5f7;
-    color: #2b1f25;
+    background-color: #fff4f8;
+    color: #4a2b38;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -18,12 +18,12 @@ h1, h2, h3, .logo .brand-title {
 }
 
 .navbar {
-    background: linear-gradient(135deg, #2b1520, #4a1e34);
+    background: linear-gradient(135deg, #702646, #aa396e);
     padding: 1.2rem 2.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 20px rgba(170, 57, 110, 0.25);
 }
 
 .navbar .logo {
@@ -34,19 +34,19 @@ h1, h2, h3, .logo .brand-title {
 .brand-title {
     font-size: 1.6rem;
     font-weight: 700;
-    color: #f7d58b;
+    color: #ffe6f0;
     letter-spacing: 0.5px;
 }
 
 .brand-sub {
     font-size: 0.8rem;
-    color: #e0b8c8;
+    color: #f7b2d2;
     text-transform: uppercase;
     letter-spacing: 1.5px;
 }
 
 .navbar nav a {
-    color: #fce8f3;
+    color: #ffffff;
     text-decoration: none;
     margin-left: 1.8rem;
     font-weight: 500;
@@ -54,14 +54,14 @@ h1, h2, h3, .logo .brand-title {
 }
 
 .btn-admin-nav {
-    background: rgba(247, 213, 139, 0.18);
+    background: rgba(255, 255, 255, 0.2);
     padding: 6px 14px;
     border-radius: 20px;
-    border: 1px solid #f7d58b;
+    border: 1px solid #ffe6f0;
 }
 
 .btn-logout-nav {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(0, 0, 0, 0.15);
     padding: 6px 14px;
     border-radius: 20px;
 }
@@ -80,15 +80,15 @@ h1, h2, h3, .logo .brand-title {
     font-weight: 600;
 }
 .alert-success { background: #e2f0d9; color: #2d572c; border: 1px solid #b8e0a8; }
-.alert-danger { background: #fce4e4; color: #842029; border: 1px solid #f7b7b7; }
+.alert-danger { background: #ffe3eb; color: #9c1c4b; border: 1px solid #f7b3c6; }
 
-/* Bio Instagram Style Banner */
+/* Bio Instagram Style Banner em Rosa Chic */
 .insta-profile-hero {
-    background: white;
+    background: #ffffff;
     border-radius: 24px;
     padding: 2.5rem;
-    box-shadow: 0 10px 30px rgba(74, 30, 52, 0.08);
-    border: 1px solid #f0e1e8;
+    box-shadow: 0 10px 30px rgba(214, 51, 132, 0.08);
+    border: 1px solid #f9dbe7;
     margin-bottom: 2.5rem;
 }
 
@@ -111,7 +111,7 @@ h1, h2, h3, .logo .brand-title {
     height: 150px;
     border-radius: 50%;
     padding: 4px;
-    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+    background: linear-gradient(45deg, #ff758c, #ff7eb3, #d63384, #aa396e);
 }
 
 .avatar-ring img {
@@ -131,7 +131,7 @@ h1, h2, h3, .logo .brand-title {
 
 .profile-handle h1 {
     font-size: 1.8rem;
-    color: #2b1520;
+    color: #702646;
 }
 
 .verified-badge {
@@ -140,13 +140,13 @@ h1, h2, h3, .logo .brand-title {
 
 .profile-name {
     font-size: 1.2rem;
-    color: #6b354d;
+    color: #aa396e;
     margin-bottom: 0.8rem;
 }
 
 .profile-bio {
     font-size: 0.98rem;
-    color: #4a3e45;
+    color: #5c3546;
     line-height: 1.6;
     margin-bottom: 1.5rem;
 }
@@ -157,31 +157,31 @@ h1, h2, h3, .logo .brand-title {
     flex-wrap: wrap;
 }
 
-.btn-gold-action {
+.btn-pink-action {
     display: inline-block;
-    background: linear-gradient(135deg, #d4af37, #aa820a);
-    color: #1f1118;
+    background: linear-gradient(135deg, #d63384, #aa396e);
+    color: #ffffff;
     padding: 12px 28px;
     border-radius: 25px;
     text-decoration: none;
     font-weight: 700;
     border: none;
     cursor: pointer;
-    box-shadow: 0 6px 20px rgba(170, 130, 10, 0.3);
+    box-shadow: 0 6px 20px rgba(214, 51, 132, 0.35);
 }
 
 .btn-insta-outline {
     display: inline-block;
-    background: #fdf5f8;
-    color: #4a1e34;
-    border: 1px solid #d8b6c5;
+    background: #fff0f6;
+    color: #8c2759;
+    border: 1px solid #f4b8d3;
     padding: 12px 24px;
     border-radius: 25px;
     text-decoration: none;
     font-weight: 600;
 }
 
-/* Stories Destaques */
+/* Stories Destaques em Rosa Soft */
 .highlights-section {
     margin-bottom: 3rem;
     text-align: center;
@@ -189,7 +189,7 @@ h1, h2, h3, .logo .brand-title {
 
 .highlights-title {
     font-size: 1.1rem;
-    color: #6b354d;
+    color: #aa396e;
     margin-bottom: 1.2rem;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -213,25 +213,25 @@ h1, h2, h3, .logo .brand-title {
     width: 76px;
     height: 76px;
     border-radius: 50%;
-    border: 2px solid #e0c2ce;
+    border: 2px solid #f7b2d2;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: white;
+    background: #ffffff;
     font-size: 2rem;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 12px rgba(170, 57, 110, 0.08);
 }
 
 .highlight-item p {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #4a3e45;
+    color: #702646;
 }
 
 .section-title {
     text-align: center;
     font-size: 2.2rem;
-    color: #2b1520;
+    color: #702646;
     margin-bottom: 2.2rem;
 }
 
@@ -243,11 +243,11 @@ h1, h2, h3, .logo .brand-title {
 }
 
 .service-card-executive {
-    background: white;
+    background: #ffffff;
     border-radius: 18px;
     overflow: hidden;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-    border: 1px solid #efe3e8;
+    box-shadow: 0 8px 24px rgba(214, 51, 132, 0.07);
+    border: 1px solid #f9dbe7;
     display: flex;
     flex-direction: column;
 }
@@ -275,13 +275,13 @@ h1, h2, h3, .logo .brand-title {
 .price-val {
     font-size: 1.4rem;
     font-weight: 700;
-    color: #8c3b60;
+    color: #d63384;
     margin-bottom: 1.2rem;
 }
 
 .btn-service-booking {
     display: inline-block;
-    background: #4a1e34;
+    background: linear-gradient(135deg, #aa396e, #702646);
     color: white;
     padding: 10px 22px;
     border-radius: 20px;
@@ -290,51 +290,12 @@ h1, h2, h3, .logo .brand-title {
     font-weight: 600;
 }
 
-.portfolio-section {
-    margin: 4rem 0;
-}
-
-.portfolio-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.5rem;
-}
-
-.portfolio-item {
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-    height: 270px;
-    box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-}
-
-.portfolio-item img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.4s;
-}
-
-.portfolio-item:hover img {
-    transform: scale(1.08);
-}
-
-.portfolio-caption {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    background: linear-gradient(transparent, rgba(43, 21, 32, 0.9));
-    color: white;
-    padding: 1rem;
-    font-size: 0.85rem;
-    text-align: center;
-}
-
 .glass-form-container {
     background: white;
     padding: 3rem;
     border-radius: 24px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-    border: 1px solid #efe3e8;
+    box-shadow: 0 10px 30px rgba(214, 51, 132, 0.08);
+    border: 1px solid #f9dbe7;
     max-width: 660px;
     margin: 0 auto;
 }
@@ -342,7 +303,7 @@ h1, h2, h3, .logo .brand-title {
 .small-card { max-width: 450px; }
 
 .form-subtext {
-    color: #6b545f;
+    color: #8c4a68;
     font-size: 0.95rem;
     margin-bottom: 2rem;
 }
@@ -357,15 +318,16 @@ h1, h2, h3, .logo .brand-title {
     font-weight: 600;
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
-    color: #2b1520;
+    color: #702646;
 }
 
 .form-group input, .form-group select {
     padding: 12px 16px;
-    border: 1px solid #e0d0d7;
+    border: 1px solid #f4b8d3;
     border-radius: 10px;
     font-size: 0.95rem;
     outline: none;
+    background-color: #fff9fc;
 }
 
 .form-row {
@@ -381,8 +343,8 @@ h1, h2, h3, .logo .brand-title {
 .luxury-icon { font-size: 4rem; margin-bottom: 0.5rem; }
 
 .summary-card {
-    background: #fcf6f9;
-    border: 1px solid #efe3e8;
+    background: #fff0f6;
+    border: 1px solid #f9dbe7;
     padding: 1.5rem;
     border-radius: 14px;
     margin: 1.8rem 0;
@@ -414,25 +376,25 @@ h1, h2, h3, .logo .brand-title {
     background: white;
     padding: 1.8rem;
     border-radius: 18px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.03);
+    box-shadow: 0 4px 16px rgba(170, 57, 110, 0.05);
     display: flex;
     align-items: center;
     gap: 1.4rem;
 }
 
-.gold-border { border-left: 5px solid #d4af37; }
-.pink-border { border-left: 5px solid #8c3b60; }
-.purple-border { border-left: 5px solid #4a1e34; }
+.gold-border { border-left: 5px solid #d63384; }
+.pink-border { border-left: 5px solid #ff7eb3; }
+.purple-border { border-left: 5px solid #702646; }
 
 .kpi-icon {
     font-size: 2.6rem;
-    background: #fdf5f9;
+    background: #fff0f6;
     padding: 12px;
     border-radius: 14px;
 }
 
 .kpi-data h4 {
-    color: #6b545f;
+    color: #8c4a68;
     font-size: 0.85rem;
     text-transform: uppercase;
 }
@@ -440,26 +402,26 @@ h1, h2, h3, .logo .brand-title {
 .kpi-val {
     font-size: 1.8rem;
     font-weight: 700;
-    color: #2b1520;
+    color: #702646;
 }
 
 .admin-section-box {
     background: white;
     padding: 2.2rem;
     border-radius: 20px;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.03);
-    border: 1px solid #efe3e8;
+    box-shadow: 0 4px 16px rgba(170, 57, 110, 0.05);
+    border: 1px solid #f9dbe7;
     margin-bottom: 2.2rem;
 }
 
 .highlight-box {
-    border-left: 6px solid #d4af37;
-    background: #fffcf7;
+    border-left: 6px solid #d63384;
+    background: #fff7fa;
 }
 
 .sub-heading {
     margin: 1.2rem 0 0.8rem 0;
-    color: #4a1e34;
+    color: #702646;
 }
 
 .form-flex-column {
@@ -479,13 +441,13 @@ h1, h2, h3, .logo .brand-title {
 .custom-table th, .custom-table td {
     padding: 14px;
     text-align: left;
-    border-bottom: 1px solid #efe3e8;
+    border-bottom: 1px solid #f9dbe7;
 }
 
-.custom-table th { background: #fdf5f9; color: #4a1e34; font-size: 0.85rem; }
+.custom-table th { background: #fff0f6; color: #702646; font-size: 0.85rem; }
 
 .btn-dark {
-    background: #4a1e34;
+    background: #702646;
     color: white;
     padding: 12px 24px;
     border-radius: 8px;
@@ -502,10 +464,10 @@ h1, h2, h3, .logo .brand-title {
 }
 
 .service-admin-card {
-    background: #fdf5f9;
+    background: #fff9fc;
     padding: 1.2rem;
     border-radius: 14px;
-    border: 1px solid #efe3e8;
+    border: 1px solid #f9dbe7;
 }
 
 .thumb-mini {
@@ -531,7 +493,7 @@ h1, h2, h3, .logo .brand-title {
     background: white;
     padding: 8px;
     border-radius: 8px;
-    border: 1px solid #e6d3dc;
+    border: 1px solid #f4b8d3;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -539,7 +501,7 @@ h1, h2, h3, .logo .brand-title {
 
 .upload-field-box label {
     font-size: 0.75rem;
-    color: #4a1e34;
+    color: #702646;
     font-weight: 600;
 }
 
@@ -550,7 +512,7 @@ h1, h2, h3, .logo .brand-title {
 .input-mini-text {
     padding: 4px 8px;
     font-size: 0.8rem;
-    border: 1px solid #d8b6c5;
+    border: 1px solid #f4b8d3;
     border-radius: 6px;
 }
 
@@ -558,17 +520,17 @@ h1, h2, h3, .logo .brand-title {
     padding: 4px;
     font-size: 0.8rem;
     border-radius: 6px;
-    border: 1px solid #d8b6c5;
+    border: 1px solid #f4b8d3;
 }
 
 .file-input-styled {
     padding: 8px;
-    background: #fcf6f9;
-    border: 1px dashed #d8b6c5;
+    background: #fff0f6;
+    border: 1px dashed #f4b8d3;
     border-radius: 8px;
 }
 
-.serv-title { font-weight: 700; color: #2b1520; font-size: 1rem; }
+.serv-title { font-weight: 700; color: #702646; font-size: 1rem; }
 
 .btn-danger {
     background: #dc3545;
@@ -582,8 +544,8 @@ h1, h2, h3, .logo .brand-title {
 .btn-sm { padding: 8px 14px; font-size: 0.85rem; }
 
 .badge-executive {
-    background: #f7e8ef;
-    color: #4a1e34;
+    background: #fff0f6;
+    color: #702646;
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 0.8rem;
@@ -602,7 +564,7 @@ h1, h2, h3, .logo .brand-title {
 footer {
     text-align: center;
     padding: 2rem;
-    background: #2b1520;
-    color: #e0b8c8;
+    background: #702646;
+    color: #ffe6f0;
     font-size: 0.85rem;
 }
