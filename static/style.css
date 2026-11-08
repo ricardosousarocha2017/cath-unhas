@@ -82,7 +82,6 @@ h1, h2, h3, .logo .brand-title {
 .alert-success { background: #e2f0d9; color: #2d572c; border: 1px solid #b8e0a8; }
 .alert-danger { background: #ffe3eb; color: #9c1c4b; border: 1px solid #f7b3c6; }
 
-/* Bio Instagram Style Banner em Rosa Chic */
 .insta-profile-hero {
     background: #ffffff;
     border-radius: 24px;
@@ -181,7 +180,6 @@ h1, h2, h3, .logo .brand-title {
     font-weight: 600;
 }
 
-/* Stories Destaques em Rosa Soft */
 .highlights-section {
     margin-bottom: 3rem;
     text-align: center;
@@ -456,6 +454,89 @@ h1, h2, h3, .logo .brand-title {
     font-weight: 600;
 }
 
+.schedule-control-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.8rem;
+    margin-top: 1.2rem;
+}
+
+.control-box {
+    background: white;
+    padding: 1.4rem;
+    border-radius: 14px;
+    border: 1px solid #f9dbe7;
+}
+
+.form-flex-row {
+    display: flex;
+    gap: 0.8rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.input-date-styled {
+    padding: 8px 12px;
+    border: 1px solid #f4b8d3;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    outline: none;
+    background: #fff9fc;
+}
+
+.tags-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 0.8rem;
+}
+
+.tag-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.tag-active {
+    background: #e2f0d9;
+    color: #2d572c;
+    border: 1px solid #b8e0a8;
+}
+
+.tag-inactive {
+    background: #ffe3eb;
+    color: #9c1c4b;
+    border: 1px solid #f7b3c6;
+}
+
+.btn-tag-toggle {
+    background: transparent;
+    border: none;
+    font-size: 0.75rem;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.btn-tag-remove {
+    background: transparent;
+    border: none;
+    font-size: 0.75rem;
+    cursor: pointer;
+}
+
+.warning-text {
+    color: #dc3545;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 4px;
+}
+
+.margin-top-md { margin-top: 1rem; }
+
 .services-admin-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -487,47 +568,6 @@ h1, h2, h3, .logo .brand-title {
     display: flex;
     flex-direction: column;
     gap: 0.6rem;
-}
-
-.upload-field-box {
-    background: white;
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid #f4b8d3;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.upload-field-box label {
-    font-size: 0.75rem;
-    color: #702646;
-    font-weight: 600;
-}
-
-.file-input-mini {
-    font-size: 0.75rem;
-}
-
-.input-mini-text {
-    padding: 4px 8px;
-    font-size: 0.8rem;
-    border: 1px solid #f4b8d3;
-    border-radius: 6px;
-}
-
-.select-mini {
-    padding: 4px;
-    font-size: 0.8rem;
-    border-radius: 6px;
-    border: 1px solid #f4b8d3;
-}
-
-.file-input-styled {
-    padding: 8px;
-    background: #fff0f6;
-    border: 1px dashed #f4b8d3;
-    border-radius: 8px;
 }
 
 .serv-title { font-weight: 700; color: #702646; font-size: 1rem; }

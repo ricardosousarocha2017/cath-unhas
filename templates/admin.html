@@ -31,16 +31,74 @@
     </div>
 </div>
 
-<!-- Módulo 1: Segurança - Alterar Usuário e Senha -->
+<!-- MÓDULO EXCLUSIVO: GERENCIAMENTO DE DATAS E HORÁRIOS DE ATENDIMENTO -->
 <div class="admin-section-box highlight-box">
-    <h3>🔐 Alteração de Usuário e Senha de Acesso</h3>
-    <p class="form-subtext">Altere os dados de login da administração a qualquer momento com total segurança.</p>
+    <h3>🗓️ Controle de Agenda: Liberar / Bloquear Datas e Horários</h3>
+    <p class="form-subtext">Os clientes <strong>só poderão agendar nas datas e horários que você adicionar e deixar como ATIVOS abaixo</strong>.</p>
 
+    <!-- GERENCIAR DATAS -->
+    <div class="schedule-control-grid">
+        <div class="control-box">
+            <h4 class="sub-heading">📅 Liberar Novas Datas de Atendimento</h4>
+            <form action="{{ url_for('adicionar_data') }}" method="POST" class="form-flex-row">
+                <input type="date" name="nova_data" required class="input-date-styled">
+                <button type="submit" class="btn-pink-action btn-sm">+ Liberar Data</button>
+            </form>
+
+            <h5 class="margin-top-md">Datas Cadastradas na Plataforma:</h5>
+            <div class="tags-container">
+                {% for d in datas_config %}
+                <div class="tag-item {% if d['ativo'] == 1 %}tag-active{% else %}tag-inactive{% endif %}">
+                    <span>{{ d['data'] }}</span>
+                    <form action="{{ url_for('toggle_data', data_id=d['id']) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn-tag-toggle">
+                            {% if d['ativo'] == 1 %}🟢 Aberta{% else %}🔴 Bloqueada{% endif %}
+                        </button>
+                    </form>
+                    <form action="{{ url_for('remover_data', data_id=d['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Excluir esta data?');">
+                        <button type="submit" class="btn-tag-remove">❌</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- GERENCIAR HORÁRIOS -->
+        <div class="control-box">
+            <h4 class="sub-heading">⏰ Liberar / Bloquear Horários</h4>
+            <form action="{{ url_for('adicionar_horario') }}" method="POST" class="form-flex-row">
+                <input type="time" name="novo_horario" required class="input-date-styled">
+                <button type="submit" class="btn-dark btn-sm">+ Adicionar Horário</button>
+            </form>
+
+            <h5 class="margin-top-md">Horários de Atendimento Padrão:</h5>
+            <div class="tags-container">
+                {% for h in horarios %}
+                <div class="tag-item {% if h['ativo'] == 1 %}tag-active{% else %}tag-inactive{% endif %}">
+                    <span>{{ h['hora'] }}</span>
+                    <form action="{{ url_for('toggle_horario', horario_id=h['id']) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="btn-tag-toggle">
+                            {% if h['ativo'] == 1 %}🟢 Ativo{% else %}🔴 Pausado{% endif %}
+                        </button>
+                    </form>
+                    <form action="{{ url_for('remover_horario', horario_id=h['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Excluir este horário?');">
+                        <button type="submit" class="btn-tag-remove">❌</button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Módulo 1: Segurança - Alterar Usuário e Senha -->
+<div class="admin-section-box">
+    <h3>🔐 Alteração de Usuário e Senha de Acesso</h3>
     <form action="{{ url_for('alterar_senha') }}" method="POST" class="form-flex-column">
         <div class="form-row">
             <div class="form-group">
                 <label for="novo_usuario">Novo Nome de Usuário:</label>
-                <input type="text" id="novo_usuario" name="novo_usuario" value="{{ username }}" placeholder="Digite o novo usuário" required>
+                <input type="text" id="novo_usuario" name="novo_usuario" value="{{ username }}" required>
             </div>
             <div class="form-group">
                 <label for="nova_senha">Nova Senha:</label>
@@ -58,8 +116,6 @@
 <!-- Módulo 2: Automações para 11963271437 -->
 <div class="admin-section-box">
     <h3>⚡ Notificações Automáticas no Telemóvel (11963271437)</h3>
-    <p class="form-subtext">Defina os canais ativados para receber alertas instantâneos a cada novo agendamento.</p>
-    
     <form action="{{ url_for('atualizar_config_api') }}" method="POST" class="form-flex-column">
         <h4 class="sub-heading">📱 WhatsApp (Green-API)</h4>
         <div class="form-row">
@@ -76,23 +132,6 @@
                 <input type="text" name="green_api_token" value="{{ configs.get('green_api_token', 'df045e5d35e245f08cda18c3dab805e49ecbf003012d478089') }}">
             </div>
         </div>
-
-        <h4 class="sub-heading">💬 SMS Direct & Telegram</h4>
-        <div class="form-row">
-            <div class="form-group">
-                <label>Número SMS:</label>
-                <input type="text" name="sms_admin" value="{{ configs.get('sms_admin', '11963271437') }}">
-            </div>
-            <div class="form-group">
-                <label>Telegram Bot Token:</label>
-                <input type="text" name="telegram_bot_token" value="{{ configs.get('telegram_bot_token', '') }}">
-            </div>
-            <div class="form-group">
-                <label>Telegram Chat ID:</label>
-                <input type="text" name="telegram_chat_id" value="{{ configs.get('telegram_chat_id', '') }}">
-            </div>
-        </div>
-
         <button type="submit" class="btn-dark">💾 Salvar Automações</button>
     </form>
 </div>
@@ -124,7 +163,7 @@
     {% endif %}
 </div>
 
-<!-- Módulo 4: Gerenciar Serviços & Upload de Fotos Reais pelo Administrador -->
+<!-- Módulo 4: Gerenciar Serviços & Upload de Fotos -->
 <div class="admin-section-box">
     <h3>➕ Cadastrar Novo Serviço com Foto Customizada</h3>
     <form action="{{ url_for('adicionar_servico') }}" method="POST" enctype="multipart/form-data" class="form-flex-column margin-bottom">
@@ -138,18 +177,13 @@
                 <input type="number" step="0.01" name="preco_servico" placeholder="140.00" required>
             </div>
         </div>
-        
         <div class="form-row">
             <div class="form-group">
-                <label>📁 Enviar Imagem do Seu Dispositivo (Computador/Celular):</label>
+                <label>📁 Enviar Imagem do Dispositivo:</label>
                 <input type="file" name="foto_file" accept="image/*" class="file-input-styled">
             </div>
             <div class="form-group">
-                <label>🌐 Ou Link de Imagem Externa (URL):</label>
-                <input type="url" name="imagem_url" placeholder="https://exemplo.com/minha_foto.jpg">
-            </div>
-            <div class="form-group">
-                <label>🖼️ Ou Selecionar das Imagens da Plataforma:</label>
+                <label>🖼️ Ou Selecionar Existente:</label>
                 <select name="imagem_servico">
                     {% for img in imagens_disponiveis %}
                         <option value="{{ img }}">{{ img }}</option>
@@ -162,9 +196,7 @@
 
     <hr class="separator">
 
-    <h3>💰 Procedimentos Exclusivos & Gerenciador / Upload de Fotos</h3>
-    <p class="form-subtext">Você pode atualizar o valor ou <strong>enviar uma foto nova do seu dispositivo</strong> para substituir a foto de qualquer procedimento abaixo.</p>
-
+    <h3>💰 Procedimentos Exclusivos & Fotos</h3>
     <div class="services-admin-grid">
         {% for s in servicos %}
         <div class="service-admin-card">
@@ -175,36 +207,17 @@
                     <img src="{{ url_for('static', filename='images/' + s['imagem']) }}" alt="{{ s['nome'] }}">
                 {% endif %}
             </div>
-            
             <form action="{{ url_for('atualizar_servico_foto') }}" method="POST" enctype="multipart/form-data" class="form-flex-sm">
                 <input type="hidden" name="servico_id" value="{{ s['id'] }}">
                 <span class="serv-title">{{ s['nome'] }}</span>
-                
                 <div class="upload-field-box">
-                    <label>📤 Enviar Nova Foto (Dispositivo):</label>
+                    <label>📤 Enviar Nova Foto:</label>
                     <input type="file" name="nova_foto_file" accept="image/*" class="file-input-mini">
                 </div>
-
-                <div class="upload-field-box">
-                    <label>🌐 Ou URL da Foto:</label>
-                    <input type="url" name="imagem_url" placeholder="https://..." class="input-mini-text">
-                </div>
-
-                <div class="upload-field-box">
-                    <label>🖼️ Ou Escolher Foto Existente:</label>
-                    <select name="imagem_servico" class="select-mini">
-                        {% for img in imagens_disponiveis %}
-                            <option value="{{ img }}" {% if s['imagem'] == img %}selected{% endif %}>{{ img }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <label style="font-size: 0.8rem; font-weight: 600; margin-top: 4px;">Valor (R$):</label>
+                <label style="font-size: 0.8rem; font-weight: 600;">Valor (R$):</label>
                 <input type="number" step="0.01" name="novo_preco" value="{{ "%.2f"|format(s['preco']) }}" required>
-                
-                <button type="submit" class="btn-dark btn-sm margin-top-xs">💾 Salvar Alterações & Foto</button>
+                <button type="submit" class="btn-dark btn-sm margin-top-xs">💾 Salvar Alterações</button>
             </form>
-
             <form action="{{ url_for('remover_servico', servico_id=s['id']) }}" method="POST" onsubmit="return confirm('Excluir este serviço?');" class="margin-top-xs">
                 <button type="submit" class="btn-danger btn-sm full-width">Excluir</button>
             </form>
@@ -213,9 +226,9 @@
     </div>
 </div>
 
-<!-- Módulo 5: Histórico de Agendamentos -->
+<!-- Módulo 5: Histórico de Agendamentos e Ações de Cancelamento -->
 <div class="admin-section-box">
-    <h3>📋 Histórico de Agendamentos Registados</h3>
+    <h3>📋 Histórico de Agendamentos Marcados</h3>
     {% if agendamentos %}
     <div class="table-container">
         <table class="custom-table">
@@ -228,7 +241,8 @@
                     <th>Valor</th>
                     <th>Data</th>
                     <th>Hora</th>
-                    <th>Status Disparo</th>
+                    <th>Status</th>
+                    <th>Ação</th>
                 </tr>
             </thead>
             <tbody>
@@ -239,14 +253,21 @@
                     <td>{{ a['telefone'] }}</td>
                     <td><span class="badge-executive">{{ a['servico'] }}</span></td>
                     <td>R$ {{ "%.2f"|format(a['preco']) }}</td>
-                    <td>{{ a['data'] }}</td>
-                    <td>{{ a['hora'] }}</td>
-                    <td><span class="badge-auto">⚡ Notificado Automático</span></td>
+                    <td><strong>{{ a['data'] }}</strong></td>
+                    <td><strong>{{ a['hora'] }}</strong></td>
+                    <td><span class="badge-auto">⚡ Notificado</span></td>
+                    <td>
+                        <form action="{{ url_for('remover_agendamento', agendamento_id=a['id']) }}" method="POST" onsubmit="return confirm('Cancelar este agendamento? O horário voltará a ficar livre!');">
+                            <button type="submit" class="btn-danger btn-sm">Cancelar</button>
+                        </form>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+    {% else %}
+    <p class="form-subtext">Nenhum agendamento realizado até o momento.</p>
     {% endif %}
 </div>
 {% endblock %}

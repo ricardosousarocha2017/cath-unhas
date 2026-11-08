@@ -1,12 +1,13 @@
 import os
 import sqlite3
 import requests
+from datetime import datetime
 from werkzeug.utils import secure_filename
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_rosa_v10')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_dates_v11')
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -38,7 +39,7 @@ def init_db():
             preco REAL NOT NULL,
             data TEXT NOT NULL,
             hora TEXT NOT NULL,
-            status TEXT DEFAULT 'Pendente'
+            status TEXT DEFAULT 'Confirmado'
         )
     ''')
     
@@ -51,6 +52,16 @@ def init_db():
         )
     ''')
 
+    # Tabela de Datas Liberadas pelo Administrador
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS datas_config (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            data TEXT UNIQUE NOT NULL,
+            ativo INTEGER DEFAULT 1
+        )
+    ''')
+
+    # Tabela de Horários Liberados pelo Administrador
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS horarios_config (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -106,6 +117,15 @@ def init_db():
     horarios_padrao = ["08:00", "09:30", "11:00", "13:30", "15:00", "16:30", "18:00"]
     for h in horarios_padrao:
         cursor.execute('INSERT OR IGNORE INTO horarios_config (hora, ativo) VALUES (?, 1)', (h,))
+
+    # Inserir por padrão a data de hoje e os próximos 7 dias como liberados
+    hoje = datetime.now()
+    cursor.execute('SELECT COUNT(*) FROM datas_config')
+    if cursor.fetchone()[0] == 0:
+        from datetime import timedelta
+        for i in range(14):
+            dt_str = (hoje + timedelta(days=i)).strftime('%Y-%m-%d')
+            cursor.execute('INSERT OR IGNORE INTO datas_config (data, ativo) VALUES (?, 1)', (dt_str,))
 
     cursor.execute('SELECT COUNT(*) FROM usuarios')
     if cursor.fetchone()[0] == 0:
@@ -216,7 +236,12 @@ def home():
 def booking():
     conn = get_db_connection()
     servicos = conn.execute('SELECT * FROM servicos').fetchall()
-    horarios = conn.execute('SELECT * FROM horarios_config WHERE ativo = 1 ORDER BY hora ASC').fetchall()
+    
+    # Apenas DATAS marcadas como ATIVAS pelo administrador
+    datas_disponiveis = conn.execute('SELECT * FROM datas_config WHERE ativo = 1 ORDER BY data ASC').fetchall()
+    
+    # Apenas HORÁRIOS marcados como ATIVOS pelo administrador
+    horarios_ativos = conn.execute('SELECT * FROM horarios_config WHERE ativo = 1 ORDER BY hora ASC').fetchall()
     
     if request.method == 'POST':
         nome = request.form.get('nome')
@@ -224,6 +249,20 @@ def booking():
         servico_id = request.form.get('servico_id')
         data = request.form.get('data')
         hora = request.form.get('hora')
+
+        # Validação estrita de Segurança: A data precisa estar liberada pelo Admin
+        dt_valida = conn.execute('SELECT * FROM datas_config WHERE data = ? AND ativo = 1', (data,)).fetchone()
+        if not dt_valida:
+            flash('A data selecionada não está disponível para agendamento.', 'danger')
+            conn.close()
+            return redirect(url_for('booking'))
+
+        # Validação estrita: O horário não pode já estar ocupado nessa data
+        ocupado = conn.execute('SELECT * FROM agendamentos WHERE data = ? AND hora = ?', (data, hora)).fetchone()
+        if ocupado:
+            flash(f'O horário {hora} no dia {data} já foi reservado por outra cliente. Escolha outro horário.', 'danger')
+            conn.close()
+            return redirect(url_for('booking'))
 
         servico = conn.execute('SELECT * FROM servicos WHERE id = ?', (servico_id,)).fetchone()
         
@@ -240,7 +279,16 @@ def booking():
             return render_template('booking_sucesso.html', nome=nome, servico=servico['nome'], data=data, hora=hora, preco=servico['preco'])
 
     conn.close()
-    return render_template('booking.html', servicos=servicos, horarios=horarios)
+    return render_template('booking.html', servicos=servicos, datas=datas_disponiveis, horarios=horarios_ativos)
+
+# API Endpoint para buscar horários já ocupados em determinada data escolhida no formulário
+@app.route('/api/horarios-ocupados/<data>')
+def horarios_ocupados(data):
+    conn = get_db_connection()
+    agendamentos = conn.execute('SELECT hora FROM agendamentos WHERE data = ?', (data,)).fetchall()
+    conn.close()
+    ocupados = [row['hora'] for row in agendamentos]
+    return jsonify(ocupados)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -269,9 +317,10 @@ def admin():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    agendamentos = conn.execute('SELECT * FROM agendamentos ORDER BY id DESC').fetchall()
+    agendamentos = conn.execute('SELECT * FROM agendamentos ORDER BY data ASC, hora ASC').fetchall()
     servicos = conn.execute('SELECT * FROM servicos').fetchall()
-    horarios = conn.execute('SELECT * FROM horarios_config ORDER BY hora ASC').fetchall()
+    datas_config = conn.execute('SELECT * FROM datas_config ORDER BY data ASC').fetchall()
+    horarios_config = conn.execute('SELECT * FROM horarios_config ORDER BY hora ASC').fetchall()
     configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
 
     total_faturamento = conn.execute("SELECT SUM(preco) FROM agendamentos").fetchone()[0] or 0.0
@@ -297,7 +346,8 @@ def admin():
     return render_template('admin.html', 
                            agendamentos=agendamentos, 
                            servicos=servicos, 
-                           horarios=horarios, 
+                           datas_config=datas_config,
+                           horarios=horarios_config, 
                            configs=configs,
                            username=session.get('username'),
                            total_faturamento=total_faturamento,
@@ -305,6 +355,112 @@ def admin():
                            ticket_medio=ticket_medio,
                            relatorio_servicos=relatorio_servicos,
                            imagens_disponiveis=imagens_disponiveis)
+
+# ROTAS DE GESTÃO DE DATAS PELO ADMIN
+@app.route('/admin/adicionar-data', methods=['POST'])
+def adicionar_data():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    nova_data = request.form.get('nova_data', '').strip()
+    if nova_data:
+        conn = get_db_connection()
+        try:
+            conn.execute('INSERT INTO datas_config (data, ativo) VALUES (?, 1)', (nova_data,))
+            conn.commit()
+            flash(f'Data {nova_data} disponibilizada para agendamentos!', 'success')
+        except sqlite3.IntegrityError:
+            flash('Esta data já está cadastrada.', 'danger')
+        finally:
+            conn.close()
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/toggle-data/<int:data_id>', methods=['POST'])
+def toggle_data(data_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    d = conn.execute('SELECT ativo FROM datas_config WHERE id = ?', (data_id,)).fetchone()
+    if d:
+        novo_status = 0 if d['ativo'] == 1 else 1
+        conn.execute('UPDATE datas_config SET ativo = ? WHERE id = ?', (novo_status, data_id))
+        conn.commit()
+        flash('Status da data alterado com sucesso!', 'success')
+    conn.close()
+    return redirect(url_for('admin'))
+
+@app.route('/admin/remover-data/<int:data_id>', methods=['POST'])
+def remover_data(data_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    conn.execute('DELETE FROM datas_config WHERE id = ?', (data_id,))
+    conn.commit()
+    conn.close()
+    flash('Data removida com sucesso!', 'success')
+    return redirect(url_for('admin'))
+
+# ROTAS DE GESTÃO DE HORÁRIOS PELO ADMIN
+@app.route('/admin/adicionar-horario', methods=['POST'])
+def adicionar_horario():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    novo_horario = request.form.get('novo_horario', '').strip()
+    if novo_horario:
+        conn = get_db_connection()
+        try:
+            conn.execute('INSERT INTO horarios_config (hora, ativo) VALUES (?, 1)', (novo_horario,))
+            conn.commit()
+            flash('Horário adicionado com sucesso!', 'success')
+        except sqlite3.IntegrityError:
+            flash('Este horário já existe.', 'danger')
+        finally:
+            conn.close()
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/toggle-horario/<int:horario_id>', methods=['POST'])
+def toggle_horario(horario_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    h = conn.execute('SELECT ativo FROM horarios_config WHERE id = ?', (horario_id,)).fetchone()
+    if h:
+        novo_status = 0 if h['ativo'] == 1 else 1
+        conn.execute('UPDATE horarios_config SET ativo = ? WHERE id = ?', (novo_status, horario_id))
+        conn.commit()
+        flash('Status do horário alterado!', 'success')
+    conn.close()
+    return redirect(url_for('admin'))
+
+@app.route('/admin/remover-horario/<int:horario_id>', methods=['POST'])
+def remover_horario(horario_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    conn.execute('DELETE FROM horarios_config WHERE id = ?', (horario_id,))
+    conn.commit()
+    conn.close()
+    flash('Horário excluído com sucesso!', 'success')
+    return redirect(url_for('admin'))
+
+@app.route('/admin/remover-agendamento/<int:agendamento_id>', methods=['POST'])
+def remover_agendamento(agendamento_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    conn = get_db_connection()
+    conn.execute('DELETE FROM agendamentos WHERE id = ?', (agendamento_id,))
+    conn.commit()
+    conn.close()
+    flash('Agendamento cancelado/excluído com sucesso!', 'success')
+    return redirect(url_for('admin'))
 
 @app.route('/admin/atualizar-config-api', methods=['POST'])
 def atualizar_config_api():
@@ -363,7 +519,6 @@ def adicionar_servico():
 
     nome_servico = request.form.get('nome_servico').strip()
     preco_servico = request.form.get('preco_servico')
-    
     imagem_servico = 'banho_gel.jpeg'
     
     if 'foto_file' in request.files and request.files['foto_file'].filename != '':
@@ -438,41 +593,6 @@ def remover_servico(servico_id):
     conn.commit()
     conn.close()
     flash('Serviço excluído!', 'success')
-
-    return redirect(url_for('admin'))
-
-@app.route('/admin/toggle-horario', methods=['POST'])
-def toggle_horario():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    horario_id = request.form.get('horario_id')
-    conn = get_db_connection()
-    h = conn.execute('SELECT ativo FROM horarios_config WHERE id = ?', (horario_id,)).fetchone()
-    if h:
-        novo_status = 0 if h['ativo'] == 1 else 1
-        conn.execute('UPDATE horarios_config SET ativo = ? WHERE id = ?', (novo_status, horario_id))
-        conn.commit()
-        flash('Status do horário alterado!', 'success')
-    conn.close()
-    return redirect(url_for('admin'))
-
-@app.route('/admin/adicionar-horario', methods=['POST'])
-def adicionar_horario():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    novo_horario = request.form.get('novo_horario').strip()
-    if novo_horario:
-        conn = get_db_connection()
-        try:
-            conn.execute('INSERT INTO horarios_config (hora, ativo) VALUES (?, 1)', (novo_horario,))
-            conn.commit()
-            flash('Horário adicionado com sucesso!', 'success')
-        except sqlite3.IntegrityError:
-            flash('Este horário já existe na lista.', 'danger')
-        finally:
-            conn.close()
 
     return redirect(url_for('admin'))
 
