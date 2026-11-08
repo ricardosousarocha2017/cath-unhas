@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_multicanal_11963271437_2026')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_2026_v7')
 
 DB_NAME = 'database.db'
 
@@ -65,7 +65,6 @@ def init_db():
         )
     ''')
 
-    # Número 11963271437 configurado como padrão absoluto em todas as vias
     configs_iniciais = [
         ('whatsapp_admin', '5511963271437'),
         ('sms_admin', '11963271437'),
@@ -106,7 +105,7 @@ def init_db():
 init_db()
 
 def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
-    """Dispara notificações para o número 11963271437 por TODOS os canais suportados."""
+    """Dispara notificações para o número 11963271437."""
     conn = get_db_connection()
     configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
     conn.close()
@@ -128,7 +127,7 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
     resend_key = configs.get('resend_api_key', '').strip()
 
     msg_texto = (
-        f"💅 *NOVO AGENDAMENTO - Cath Unhas*\n\n"
+        f"💅 *NOVO AGENDAMENTO - Cathelin Eloim | Nail Designer*\n\n"
         f"👤 *Cliente:* {nome}\n"
         f"📞 *Contato:* {telefone}\n"
         f"✨ *Procedimento:* {servico}\n"
@@ -137,7 +136,7 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
         f"⏰ *Horário:* {hora}"
     )
 
-    # MEIO 1: WhatsApp via Green-API (Para 5511963271437)
+    # 1. WhatsApp via Green-API
     if green_id and green_token and target_wa:
         try:
             url_green = f"https://7107.api.greenapi.com/waInstance{green_id}/sendMessage/{green_token}"
@@ -147,7 +146,7 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
         except Exception as e:
             print(f"Erro WhatsApp Green-API: {e}")
 
-    # MEIO 2: SMS via Twilio (Para 11963271437)
+    # 2. SMS via Twilio
     if tw_sid and tw_token and tw_from and target_sms:
         try:
             sms_body = f"Cath Unhas: Novo Agendamento - {nome} ({servico}) em {data} as {hora}. R$ {preco:.2f}"
@@ -161,7 +160,7 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
         except Exception as e:
             print(f"Erro SMS Twilio: {e}")
 
-    # MEIO 3: Telegram Bot Instantâneo
+    # 3. Telegram
     if tg_token and tg_chat:
         try:
             url_tg = f"https://api.telegram.org/bot{tg_token}/sendMessage"
@@ -170,7 +169,7 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
         except Exception as e:
             print(f"Erro Telegram: {e}")
 
-    # MEIO 4: E-mail via Resend
+    # 4. E-mail Resend
     if resend_key and email_admin:
         try:
             url_resend = "https://api.resend.com/emails"
@@ -305,7 +304,39 @@ def atualizar_config_api():
     conn.commit()
     conn.close()
 
-    flash('Configurações salvas para o número 11963271437!', 'success')
+    flash('Configurações salvas com sucesso!', 'success')
+    return redirect(url_for('admin'))
+
+@app.route('/admin/alterar-senha', methods=['POST'])
+def alterar_senha():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    novo_usuario = request.form.get('novo_usuario', '').strip()
+    nova_senha = request.form.get('nova_senha', '').strip()
+    confirmar_senha = request.form.get('confirmar_senha', '').strip()
+
+    if not novo_usuario or not nova_senha:
+        flash('Usuário e senha não podem estar em branco.', 'danger')
+        return redirect(url_for('admin'))
+
+    if nova_senha != confirmar_senha:
+        flash('As senhas digitadas não coincidem. Tente novamente.', 'danger')
+        return redirect(url_for('admin'))
+
+    senha_hash = generate_password_hash(nova_senha)
+    conn = get_db_connection()
+    try:
+        conn.execute('UPDATE usuarios SET usuario = ?, senha = ? WHERE id = ?', 
+                     (novo_usuario, senha_hash, session['user_id']))
+        conn.commit()
+        session['username'] = novo_usuario
+        flash('Credenciais do administrador alteradas com sucesso!', 'success')
+    except sqlite3.IntegrityError:
+        flash('Nome de usuário indisponível.', 'danger')
+    finally:
+        conn.close()
+
     return redirect(url_for('admin'))
 
 @app.route('/admin/adicionar-servico', methods=['POST'])
@@ -391,30 +422,6 @@ def adicionar_horario():
             flash('Horário adicionado com sucesso!', 'success')
         except sqlite3.IntegrityError:
             flash('Este horário já existe na lista.', 'danger')
-        finally:
-            conn.close()
-
-    return redirect(url_for('admin'))
-
-@app.route('/admin/alterar-senha', methods=['POST'])
-def alterar_senha():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    novo_usuario = request.form.get('novo_usuario').strip()
-    nova_senha = request.form.get('nova_senha')
-
-    if novo_usuario and nova_senha:
-        senha_hash = generate_password_hash(nova_senha)
-        conn = get_db_connection()
-        try:
-            conn.execute('UPDATE usuarios SET usuario = ?, senha = ? WHERE id = ?', 
-                         (novo_usuario, senha_hash, session['user_id']))
-            conn.commit()
-            session['username'] = novo_usuario
-            flash('Usuário e senha alterados com sucesso!', 'success')
-        except sqlite3.IntegrityError:
-            flash('Nome de usuário indisponível.', 'danger')
         finally:
             conn.close()
 

@@ -1,3 +1,3 @@
-# Cath Unhas - Envio Multicanal Fixado no Número 11963271437
+# Cathelin Eloim | Nail Designer - Plataforma Oficial com Gestão de Credenciais e Design Instagram
 
-Disparo automático integrado via WhatsApp (Green-API), SMS (Twilio), Telegram e E-mail.
+Atualização da plataforma com branding oficial @cath_unhass (Itapecerica da Serra), módulo completo de alteração de usuário/senha no Painel Admin e disparo automático para 11963271437.

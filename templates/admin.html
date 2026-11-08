@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="admin-title-bar">
-    <h2>📊 Painel Executivo & Disparo Multicanal (11963271437)</h2>
-    <p>Bem-vinda, <strong>{{ username }}</strong>!</p>
+    <h2>📊 Painel Executivo — Cathelin Eloim Studio</h2>
+    <p>Bem-vinda de volta, <strong>{{ username }}</strong>!</p>
 </div>
 
 <!-- KPIs Financeiros -->
@@ -31,21 +31,45 @@
     </div>
 </div>
 
-<!-- Notificações Multicanais para o Número 11963271437 -->
-<div class="admin-section-box">
-    <h3>⚡ Configuração do Destino: 11963271437 (WhatsApp, SMS & Telegram)</h3>
-    <p class="form-subtext">Todas as notificações de novos agendamentos serão encaminhadas diretamente para este número através dos canais configurados.</p>
-    
-    <form action="{{ url_for('atualizar_config_api') }}" method="POST" class="form-flex-column">
-        <h4 class="sub-heading">📱 WhatsApp (Green-API) para 11963271437</h4>
+<!-- Módulo 1: Segurança - Alterar Usuário e Senha -->
+<div class="admin-section-box highlight-box">
+    <h3>🔐 Alteração de Usuário e Senha de Acesso</h3>
+    <p class="form-subtext">Altere os dados de login da administração a qualquer momento com total segurança.</p>
+
+    <form action="{{ url_for('alterar_senha') }}" method="POST" class="form-flex-column">
         <div class="form-row">
             <div class="form-group">
-                <label>Número WhatsApp Destino:</label>
-                <input type="text" name="whatsapp_admin" value="{{ configs.get('whatsapp_admin', '5511963271437') }}" placeholder="5511963271437" required>
+                <label for="novo_usuario">Novo Nome de Usuário:</label>
+                <input type="text" id="novo_usuario" name="novo_usuario" value="{{ username }}" placeholder="Digite o novo usuário" required>
+            </div>
+            <div class="form-group">
+                <label for="nova_senha">Nova Senha:</label>
+                <input type="password" id="nova_senha" name="nova_senha" placeholder="Digite a nova senha" required>
+            </div>
+            <div class="form-group">
+                <label for="confirmar_senha">Confirmar Nova Senha:</label>
+                <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Confirme a nova senha" required>
+            </div>
+        </div>
+        <button type="submit" class="btn-gold-action btn-sm auto-width">🔒 Atualizar Login e Senha</button>
+    </form>
+</div>
+
+<!-- Módulo 2: Automações para 11963271437 -->
+<div class="admin-section-box">
+    <h3>⚡ Notificações Automáticas no Telemóvel (11963271437)</h3>
+    <p class="form-subtext">Defina os canais ativados para receber alertas instantâneos a cada novo agendamento.</p>
+    
+    <form action="{{ url_for('atualizar_config_api') }}" method="POST" class="form-flex-column">
+        <h4 class="sub-heading">📱 WhatsApp (Green-API)</h4>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Número WhatsApp (Com 55):</label>
+                <input type="text" name="whatsapp_admin" value="{{ configs.get('whatsapp_admin', '5511963271437') }}" required>
             </div>
             <div class="form-group">
                 <label>Green Instance ID:</label>
-                <input type="text" name="green_instance_id" value="{{ configs.get('green_instance_id', '710722792308') }}" placeholder="710722792308">
+                <input type="text" name="green_instance_id" value="{{ configs.get('green_instance_id', '710722792308') }}">
             </div>
             <div class="form-group">
                 <label>Green API Token:</label>
@@ -53,51 +77,27 @@
             </div>
         </div>
 
-        <h4 class="sub-heading">💬 SMS Direct (Twilio API) para 11963271437</h4>
+        <h4 class="sub-heading">💬 SMS Direct & Telegram</h4>
         <div class="form-row">
             <div class="form-group">
-                <label>Número SMS Destino:</label>
-                <input type="text" name="sms_admin" value="{{ configs.get('sms_admin', '11963271437') }}" placeholder="11963271437">
+                <label>Número SMS:</label>
+                <input type="text" name="sms_admin" value="{{ configs.get('sms_admin', '11963271437') }}">
             </div>
-            <div class="form-group">
-                <label>Twilio Account SID:</label>
-                <input type="text" name="twilio_account_sid" value="{{ configs.get('twilio_account_sid', '') }}" placeholder="ACXXXXXXXXX">
-            </div>
-            <div class="form-group">
-                <label>Twilio Auth Token:</label>
-                <input type="password" name="twilio_auth_token" value="{{ configs.get('twilio_auth_token', '') }}">
-            </div>
-            <div class="form-group">
-                <label>Twilio Phone Number:</label>
-                <input type="text" name="twilio_phone_number" value="{{ configs.get('twilio_phone_number', '') }}" placeholder="+123456789">
-            </div>
-        </div>
-
-        <h4 class="sub-heading">✈️ Telegram & E-mail (Opcional)</h4>
-        <div class="form-row">
             <div class="form-group">
                 <label>Telegram Bot Token:</label>
-                <input type="text" name="telegram_bot_token" value="{{ configs.get('telegram_bot_token', '') }}" placeholder="123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11">
+                <input type="text" name="telegram_bot_token" value="{{ configs.get('telegram_bot_token', '') }}">
             </div>
             <div class="form-group">
                 <label>Telegram Chat ID:</label>
-                <input type="text" name="telegram_chat_id" value="{{ configs.get('telegram_chat_id', '') }}" placeholder="123456789">
-            </div>
-            <div class="form-group">
-                <label>Seu E-mail Alerta:</label>
-                <input type="email" name="email_admin" value="{{ configs.get('email_admin', '') }}" placeholder="seuemail@gmail.com">
-            </div>
-            <div class="form-group">
-                <label>Resend API Key:</label>
-                <input type="text" name="resend_api_key" value="{{ configs.get('resend_api_key', '') }}" placeholder="re_123456789...">
+                <input type="text" name="telegram_chat_id" value="{{ configs.get('telegram_chat_id', '') }}">
             </div>
         </div>
 
-        <button type="submit" class="btn-dark">💾 Salvar Configurações Multicanais</button>
+        <button type="submit" class="btn-dark">💾 Salvar Automações</button>
     </form>
 </div>
 
-<!-- Relatório Gerencial -->
+<!-- Módulo 3: Relatório Gerencial de Vendas -->
 <div class="admin-section-box">
     <h3>📈 Relatório Gerencial de Vendas por Serviço</h3>
     {% if relatorio_servicos %}
@@ -124,9 +124,9 @@
     {% endif %}
 </div>
 
-<!-- Serviços e Preços com Fotos Reais -->
+<!-- Módulo 4: Gerenciar Serviços & Preços -->
 <div class="admin-section-box">
-    <h3>➕ Cadastrar Novo Serviço com Foto</h3>
+    <h3>➕ Cadastrar Novo Serviço</h3>
     <form action="{{ url_for('adicionar_servico') }}" method="POST" class="form-flex margin-bottom">
         <div class="form-group flex-2">
             <label>Nome do Serviço:</label>
@@ -150,7 +150,7 @@
 
     <hr class="separator">
 
-    <h3>💰 Gerenciar Serviços & Preços Existentes</h3>
+    <h3>💰 Preços dos Procedimentos</h3>
     <div class="services-admin-grid">
         {% for s in servicos %}
         <div class="service-admin-card">
@@ -171,7 +171,7 @@
     </div>
 </div>
 
-<!-- Agendamentos Registados -->
+<!-- Módulo 5: Histórico de Agendamentos -->
 <div class="admin-section-box">
     <h3>📋 Histórico de Agendamentos Registados</h3>
     {% if agendamentos %}

@@ -6,31 +6,43 @@
 }
 
 body {
-    background-color: #f7f2f5;
+    background-color: #faf5f7;
     color: #2b1f25;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
-h1, h2, h3, .logo {
+h1, h2, h3, .logo .brand-title {
     font-family: 'Playfair Display', serif;
 }
 
 .navbar {
-    background: linear-gradient(135deg, #1f1118, #421e2f);
+    background: linear-gradient(135deg, #2b1520, #4a1e34);
     padding: 1.2rem 2.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
 .navbar .logo {
-    font-size: 1.8rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.brand-title {
+    font-size: 1.6rem;
     font-weight: 700;
-    color: #d4af37;
-    letter-spacing: 1px;
+    color: #f7d58b;
+    letter-spacing: 0.5px;
+}
+
+.brand-sub {
+    font-size: 0.8rem;
+    color: #e0b8c8;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
 }
 
 .navbar nav a {
@@ -42,10 +54,10 @@ h1, h2, h3, .logo {
 }
 
 .btn-admin-nav {
-    background: rgba(212, 175, 55, 0.15);
+    background: rgba(247, 213, 139, 0.18);
     padding: 6px 14px;
     border-radius: 20px;
-    border: 1px solid #d4af37;
+    border: 1px solid #f7d58b;
 }
 
 .btn-logout-nav {
@@ -56,85 +68,170 @@ h1, h2, h3, .logo {
 
 .main-wrapper {
     max-width: 1140px;
-    margin: 2.5rem auto;
+    margin: 2rem auto;
     padding: 0 1.5rem;
     flex: 1;
 }
 
 .alert {
     padding: 14px 20px;
-    border-radius: 10px;
+    border-radius: 12px;
     margin-bottom: 1.5rem;
+    font-weight: 600;
 }
 .alert-success { background: #e2f0d9; color: #2d572c; border: 1px solid #b8e0a8; }
 .alert-danger { background: #fce4e4; color: #842029; border: 1px solid #f7b7b7; }
 
-.hero-executive {
-    position: relative;
-    background: url('/static/images/img_brasil.jpeg') center/cover no-repeat;
+/* Bio Instagram Style Banner */
+.insta-profile-hero {
+    background: white;
     border-radius: 24px;
-    padding: 6rem 2rem;
-    text-align: center;
-    color: white;
-    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.25);
-    overflow: hidden;
-    margin-bottom: 3.5rem;
+    padding: 2.5rem;
+    box-shadow: 0 10px 30px rgba(74, 30, 52, 0.08);
+    border: 1px solid #f0e1e8;
+    margin-bottom: 2.5rem;
 }
 
-.hero-backdrop {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(135deg, rgba(31, 17, 24, 0.88), rgba(66, 30, 47, 0.78));
-    z-index: 1;
+.insta-hero-card {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
 }
 
-.hero-inner {
-    position: relative;
-    z-index: 2;
-    max-width: 780px;
-    margin: 0 auto;
+@media (max-width: 768px) {
+    .insta-hero-card {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.5rem;
+    }
 }
 
-.luxury-tag {
-    background: rgba(212, 175, 55, 0.25);
-    color: #f7e7a9;
-    border: 1px solid #d4af37;
-    padding: 6px 20px;
-    border-radius: 30px;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 2px;
+.avatar-ring {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    padding: 4px;
+    background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
 }
 
-.hero-executive h1 {
-    font-size: 2.8rem;
-    margin: 1.2rem 0;
-    color: #ffffff;
+.avatar-ring img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid white;
 }
 
-.hero-executive p {
-    font-size: 1.15rem;
-    color: #ebdbe4;
-    margin-bottom: 2.2rem;
+.profile-handle {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.4rem;
+}
+
+.profile-handle h1 {
+    font-size: 1.8rem;
+    color: #2b1520;
+}
+
+.verified-badge {
+    font-size: 1.3rem;
+}
+
+.profile-name {
+    font-size: 1.2rem;
+    color: #6b354d;
+    margin-bottom: 0.8rem;
+}
+
+.profile-bio {
+    font-size: 0.98rem;
+    color: #4a3e45;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+}
+
+.profile-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .btn-gold-action {
     display: inline-block;
     background: linear-gradient(135deg, #d4af37, #aa820a);
     color: #1f1118;
-    padding: 14px 36px;
-    border-radius: 30px;
+    padding: 12px 28px;
+    border-radius: 25px;
     text-decoration: none;
     font-weight: 700;
     border: none;
     cursor: pointer;
-    box-shadow: 0 8px 24px rgba(170, 130, 10, 0.4);
+    box-shadow: 0 6px 20px rgba(170, 130, 10, 0.3);
+}
+
+.btn-insta-outline {
+    display: inline-block;
+    background: #fdf5f8;
+    color: #4a1e34;
+    border: 1px solid #d8b6c5;
+    padding: 12px 24px;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Stories Destaques */
+.highlights-section {
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.highlights-title {
+    font-size: 1.1rem;
+    color: #6b354d;
+    margin-bottom: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.highlights-grid {
+    display: flex;
+    justify-content: center;
+    gap: 2.2rem;
+    flex-wrap: wrap;
+}
+
+.highlight-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.highlight-circle {
+    width: 76px;
+    height: 76px;
+    border-radius: 50%;
+    border: 2px solid #e0c2ce;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+    font-size: 2rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.highlight-item p {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4a3e45;
 }
 
 .section-title {
     text-align: center;
     font-size: 2.2rem;
-    color: #1f1118;
+    color: #2b1520;
     margin-bottom: 2.2rem;
 }
 
@@ -184,7 +281,7 @@ h1, h2, h3, .logo {
 
 .btn-service-booking {
     display: inline-block;
-    background: #421e2f;
+    background: #4a1e34;
     color: white;
     padding: 10px 22px;
     border-radius: 20px;
@@ -225,7 +322,7 @@ h1, h2, h3, .logo {
 .portfolio-caption {
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    background: linear-gradient(transparent, rgba(31, 17, 24, 0.9));
+    background: linear-gradient(transparent, rgba(43, 21, 32, 0.9));
     color: white;
     padding: 1rem;
     font-size: 0.85rem;
@@ -260,7 +357,7 @@ h1, h2, h3, .logo {
     font-weight: 600;
     font-size: 0.9rem;
     margin-bottom: 0.5rem;
-    color: #1f1118;
+    color: #2b1520;
 }
 
 .form-group input, .form-group select {
@@ -278,6 +375,7 @@ h1, h2, h3, .logo {
 }
 
 .full-width { width: 100%; }
+.auto-width { width: auto; min-width: 200px; }
 
 .text-center { text-align: center; }
 .luxury-icon { font-size: 4rem; margin-bottom: 0.5rem; }
@@ -324,7 +422,7 @@ h1, h2, h3, .logo {
 
 .gold-border { border-left: 5px solid #d4af37; }
 .pink-border { border-left: 5px solid #8c3b60; }
-.purple-border { border-left: 5px solid #421e2f; }
+.purple-border { border-left: 5px solid #4a1e34; }
 
 .kpi-icon {
     font-size: 2.6rem;
@@ -342,7 +440,7 @@ h1, h2, h3, .logo {
 .kpi-val {
     font-size: 1.8rem;
     font-weight: 700;
-    color: #1f1118;
+    color: #2b1520;
 }
 
 .admin-section-box {
@@ -354,9 +452,14 @@ h1, h2, h3, .logo {
     margin-bottom: 2.2rem;
 }
 
+.highlight-box {
+    border-left: 6px solid #d4af37;
+    background: #fffcf7;
+}
+
 .sub-heading {
     margin: 1.2rem 0 0.8rem 0;
-    color: #421e2f;
+    color: #4a1e34;
 }
 
 .form-flex-column {
@@ -379,10 +482,10 @@ h1, h2, h3, .logo {
     border-bottom: 1px solid #efe3e8;
 }
 
-.custom-table th { background: #fdf5f9; color: #421e2f; font-size: 0.85rem; }
+.custom-table th { background: #fdf5f9; color: #4a1e34; font-size: 0.85rem; }
 
 .btn-dark {
-    background: #421e2f;
+    background: #4a1e34;
     color: white;
     padding: 12px 24px;
     border-radius: 8px;
@@ -424,7 +527,7 @@ h1, h2, h3, .logo {
     gap: 0.5rem;
 }
 
-.serv-title { font-weight: 700; color: #1f1118; }
+.serv-title { font-weight: 700; color: #2b1520; }
 
 .btn-danger {
     background: #dc3545;
@@ -439,7 +542,7 @@ h1, h2, h3, .logo {
 
 .badge-executive {
     background: #f7e8ef;
-    color: #421e2f;
+    color: #4a1e34;
     padding: 4px 12px;
     border-radius: 12px;
     font-size: 0.8rem;
@@ -458,7 +561,7 @@ h1, h2, h3, .logo {
 footer {
     text-align: center;
     padding: 2rem;
-    background: #1f1118;
-    color: #bfa6b2;
+    background: #2b1520;
+    color: #e0b8c8;
     font-size: 0.85rem;
 }

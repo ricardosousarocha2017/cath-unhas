@@ -3,18 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cath Unhas — Studio de Beleza & Nail Art Studio</title>
+    <title>Cathelin Eloim | Nail Designer — Itapecerica da Serra</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <header class="navbar">
-        <div class="logo">💎 Cath Unhas</div>
+        <div class="logo">
+            <span class="brand-title">Cathelin Eloim</span>
+            <span class="brand-sub">Nail Designer 🏆</span>
+        </div>
         <nav>
             <a href="{{ url_for('home') }}">Início</a>
             <a href="{{ url_for('booking') }}">Agendar Horário</a>
             {% if session.get('logged_in') %}
-                <a href="{{ url_for('admin') }}" class="btn-admin-nav">📊 Painel Admin</a>
+                <a href="{{ url_for('admin') }}" class="btn-admin-nav">⚙️ Gestão & Acesso</a>
                 <a href="{{ url_for('logout') }}" class="btn-logout-nav">Sair</a>
             {% else %}
                 <a href="{{ url_for('login') }}">Área Restrita</a>
@@ -35,7 +38,7 @@
     </div>
 
     <footer>
-        <p>&copy; 2026 Cath Unhas Studio — Excelência em Nail Design, Molde F1 & Banho de Gel.</p>
+        <p>&copy; 2026 Cathelin Eloim | Nail Designer — 8 anos de tradição em nail design e sofisticação ✨ | Itapecerica da Serra.</p>
     </footer>
 </body>
 </html>

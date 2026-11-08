@@ -2,8 +2,8 @@
 
 {% block content %}
 <div class="glass-form-container">
-    <h2>🗓️ Agendar Atendimento</h2>
-    <p class="form-subtext">Preencha seus dados para reservar. A administração será notificada automaticamente.</p>
+    <h2>🗓️ Agendar Atendimento com Cathelin Eloim</h2>
+    <p class="form-subtext">Reserve seu horário. O agendamento é notificado automaticamente para o telemóvel do studio (11963271437).</p>
 
     <form action="{{ url_for('booking') }}" method="POST">
         <div class="form-group">
@@ -19,7 +19,7 @@
         <div class="form-group">
             <label for="servico_id">Procedimento Desejado:</label>
             <select id="servico_id" name="servico_id" required>
-                <option value="" disabled selected>Selecione o serviço...</option>
+                <option value="" disabled selected>Selecione o procedimento...</option>
                 {% for s in servicos %}
                     <option value="{{ s['id'] }}">{{ s['nome'] }} — R$ {{ "%.2f"|format(s['preco']) }}</option>
                 {% endfor %}
