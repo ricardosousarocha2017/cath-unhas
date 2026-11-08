@@ -52,7 +52,7 @@ h1, h2, h3, .logo .brand-title, .profile-handle h1, .profile-name, .section-titl
 .alert-success { background: #e2f0d9; color: #2d572c; }
 .alert-danger { background: #ffe3eb; color: #9c1c4b; }
 
-/* HERO INSTAGRAM - EXATAMENTE IGUAL À IMAGEM 195813 */
+/* HERO INSTAGRAM */
 .insta-profile-hero {
     background: #ffffff;
     border-radius: 20px;
@@ -148,133 +148,60 @@ h1, h2, h3, .logo .brand-title, .profile-handle h1, .profile-name, .section-titl
     font-weight: 600;
 }
 
-/* DESTAQUES CENTRALIZADOS COM CÍRCULOS EM ROSA FOSCO/BRANCO */
-.highlights-section {
-    text-align: center;
-    margin-bottom: 3rem;
-}
-.highlights-title {
-    font-size: 1.2rem;
-    letter-spacing: 2px;
-    color: #702646;
-    text-transform: uppercase;
-    margin-bottom: 1.5rem;
-}
-.highlights-grid {
-    display: flex;
-    justify-content: center;
-    gap: 2.5rem;
-}
-.highlight-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-}
-.highlight-circle {
-    width: 72px;
-    height: 72px;
-    border-radius: 50%;
-    background: #ffffff;
-    border: 1px solid #f8bbd0;
-    box-shadow: 0 4px 12px rgba(214, 51, 132, 0.08);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.8rem;
-}
-.highlight-item p {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #702646;
-}
-
-/* PROCEDIMENTOS EXCLUSIVOS */
-.section-title {
-    text-align: center;
-    font-size: 2rem;
-    color: #702646;
-    margin-bottom: 2rem;
-}
-
-.services-luxury-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 2rem;
-    margin-bottom: 3rem;
-}
-
-.service-card-executive {
-    background: #ffffff;
-    border-radius: 20px;
-    overflow: hidden;
-    box-shadow: 0 8px 24px rgba(214, 51, 132, 0.06);
-    border: 1px solid #fce4ec;
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-}
-
-.card-thumb {
-    width: 100%;
-    height: 220px;
-    overflow: hidden;
+/* LEGENDA INFORMATIVA DO SINAL */
+.sinal-info-banner {
     background: #fff0f6;
-}
-.card-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.card-content {
-    padding: 1.5rem;
+    border: 1px solid #f8bbd0;
+    border-radius: 14px;
+    padding: 1.2rem;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    flex: 1;
+    gap: 1rem;
+    margin-bottom: 1.8rem;
 }
+.banner-icon { font-size: 1.8rem; }
+.banner-text { font-size: 0.9rem; color: #702646; line-height: 1.5; }
 
-.card-content h3 {
-    font-size: 1.2rem;
-    color: #702646;
-    margin-bottom: 0.5rem;
+/* SEÇÃO PIX & QR CODE */
+.pix-payment-card {
+    background: #fff9fc;
+    border: 1px dashed #d63384;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-top: 1.2rem;
+    text-align: center;
 }
+.pix-payment-card h4 { color: #702646; margin-bottom: 0.5rem; }
+.qr-code-wrapper { margin: 1rem auto; width: 180px; height: 180px; background: white; padding: 10px; border-radius: 12px; border: 1px solid #f8bbd0; }
+.qr-code-img { width: 100%; height: 100%; object-fit: contain; }
+.pix-key-box { display: flex; align-items: center; justify-content: center; gap: 0.8rem; margin-top: 0.8rem; }
+.btn-copy-pix { background: #702646; color: white; border: none; padding: 6px 14px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; }
+.pix-meta-info { font-size: 0.82rem; color: #8c2759; margin-top: 0.6rem; }
 
-.price-val {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #d63384;
-    margin-bottom: 1.2rem;
-}
+.badge-sinal { background: #f8bbd0; color: #702646; padding: 4px 8px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; }
 
-.btn-service-booking {
-    display: inline-block;
-    background: linear-gradient(135deg, #d63384, #aa396e);
-    color: #ffffff;
-    padding: 10px 22px;
-    border-radius: 20px;
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 0.9rem;
-}
+/* DESTAQUES & PROCEDIMENTOS */
+.highlights-section { text-align: center; margin-bottom: 3rem; }
+.highlights-title { font-size: 1.2rem; letter-spacing: 2px; color: #702646; text-transform: uppercase; margin-bottom: 1.5rem; }
+.highlights-grid { display: flex; justify-content: center; gap: 2.5rem; }
+.highlight-item { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+.highlight-circle { width: 72px; height: 72px; border-radius: 50%; background: #ffffff; border: 1px solid #f8bbd0; box-shadow: 0 4px 12px rgba(214, 51, 132, 0.08); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+.highlight-item p { font-size: 0.85rem; font-weight: 600; color: #702646; }
 
-/* OUTROS ELEMENTOS DO PAINEL / BOOKING */
-.glass-form-container {
-    background: white;
-    padding: 3rem;
-    border-radius: 24px;
-    box-shadow: 0 10px 30px rgba(214, 51, 132, 0.08);
-    border: 1px solid #f9dbe7;
-    max-width: 660px;
-    margin: 0 auto;
-}
+.section-title { text-align: center; font-size: 2rem; color: #702646; margin-bottom: 2rem; }
+.services-luxury-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 2rem; margin-bottom: 3rem; }
+.service-card-executive { background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 8px 24px rgba(214, 51, 132, 0.06); border: 1px solid #fce4ec; display: flex; flex-direction: column; text-align: center; }
+.card-thumb { width: 100%; height: 220px; overflow: hidden; background: #fff0f6; }
+.card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.card-content { padding: 1.5rem; display: flex; flex-direction: column; align-items: center; flex: 1; }
+.card-content h3 { font-size: 1.2rem; color: #702646; margin-bottom: 0.5rem; }
+.price-val { font-size: 1.1rem; font-weight: 700; color: #d63384; margin-bottom: 1.2rem; }
+.btn-service-booking { display: inline-block; background: linear-gradient(135deg, #d63384, #aa396e); color: #ffffff; padding: 10px 22px; border-radius: 20px; text-decoration: none; font-weight: 600; font-size: 0.9rem; }
 
+.glass-form-container { background: white; padding: 3rem; border-radius: 24px; box-shadow: 0 10px 30px rgba(214, 51, 132, 0.08); border: 1px solid #f9dbe7; max-width: 660px; margin: 0 auto; }
 .form-group { display: flex; flex-direction: column; margin-bottom: 1.4rem; }
 .form-group label { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; color: #702646; }
-.form-group input, .form-group select {
-    padding: 12px 16px; border: 1px solid #f4b8d3; border-radius: 10px; font-size: 0.95rem; outline: none; background-color: #fff9fc;
-}
+.form-group input, .form-group select { padding: 12px 16px; border: 1px solid #f4b8d3; border-radius: 10px; font-size: 0.95rem; outline: none; background-color: #fff9fc; }
 
 .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; }
 .full-width { width: 100%; }

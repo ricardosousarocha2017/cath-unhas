@@ -3,15 +3,30 @@
 {% block content %}
 <div class="glass-form-container text-center">
     <div class="luxury-icon">✨</div>
-    <h2>Agendamento Confirmado!</h2>
-    <p class="success-intro">Obrigado, <strong>{{ nome }}</strong>! Sua reserva foi efetuada com sucesso no studio de Cathelin Eloim.</p>
+    <h2>Agendamento Solicitado!</h2>
+    <p class="success-intro">Obrigado, <strong>{{ nome }}</strong>! Sua solicitação de reserva foi registrada no studio de Cathelin Eloim.</p>
     
     <div class="summary-card">
         <div class="summary-row"><span>Procedimento:</span> <strong>{{ servico }}</strong></div>
-        <div class="summary-row"><span>Valor:</span> <strong>R$ {{ "%.2f"|format(preco) }}</strong></div>
+        <div class="summary-row"><span>Valor Total:</span> <strong>R$ {{ "%.2f"|format(preco) }}</strong></div>
+        <div class="summary-row"><span>Sinal de Garantia:</span> <strong>R$ {{ "%.2f"|format(valor_sinal) }}</strong></div>
+        <div class="summary-row"><span>Pagamento:</span> <strong>{{ forma_pagamento }}</strong></div>
         <div class="summary-row"><span>Data:</span> <strong>{{ data }}</strong></div>
         <div class="summary-row"><span>Horário:</span> <strong>{{ hora }}</strong></div>
     </div>
+
+    {% if 'Pix' in forma_pagamento %}
+    <div class="pix-confirmation-box margin-top-md">
+        <h4>📱 Realize o pagamento do Sinal via Pix</h4>
+        <p>Envie o comprovante do Pix no valor de <strong>R$ {{ "%.2f"|format(valor_sinal) }}</strong> para garantir seu horário.</p>
+        
+        <div class="qr-code-wrapper">
+            <img src="{{ url_for('static', filename='images/' + configs.get('qr_code_image', 'qrcode_pix.png')) }}" alt="QR Code Pix" class="qr-code-img">
+        </div>
+        
+        <p class="margin-top-xs">Chave Pix: <strong>{{ configs.get('pix_chave', '11963271437') }}</strong></p>
+    </div>
+    {% endif %}
 
     <br>
     <a href="{{ url_for('home') }}" class="btn-pink-action">← Voltar para o Início</a>

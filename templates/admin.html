@@ -31,6 +31,42 @@
 </div>
 
 <div class="admin-section-box highlight-box">
+    <h3>💳 Gerenciador do Valor do Sinal & Dados de Pagamento Pix</h3>
+    <p class="form-subtext">Altere o valor da taxa de sinal de reserva cobrada dos clientes e configure a chave e QR Code do Pix.</p>
+
+    <form action="{{ url_for('atualizar_sinal_pix') }}" method="POST" enctype="multipart/form-data" class="form-flex-column">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="valor_sinal_padrao">💰 Valor do Sinal de Garantia (R$):</label>
+                <input type="number" step="0.01" id="valor_sinal_padrao" name="valor_sinal_padrao" value="{{ configs.get('valor_sinal_padrao', '30.00') }}" required>
+            </div>
+            <div class="form-group">
+                <label for="pix_chave">🔑 Chave Pix (Telefone/CPF/E-mail):</label>
+                <input type="text" id="pix_chave" name="pix_chave" value="{{ configs.get('pix_chave', '11963271437') }}" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="pix_titular">👤 Nome do Titular da Conta:</label>
+                <input type="text" id="pix_titular" name="pix_titular" value="{{ configs.get('pix_titular', 'Cathelin Eloim') }}" required>
+            </div>
+            <div class="form-group">
+                <label for="pix_banco">🏦 Banco / Instituição:</label>
+                <input type="text" id="pix_banco" name="pix_banco" value="{{ configs.get('pix_banco', 'Nubank') }}" required>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="qr_code_file">📷 Enviar Nova Imagem do QR Code Pix (opcional):</label>
+            <input type="file" id="qr_code_file" name="qr_code_file" accept="image/*" class="file-input-styled">
+        </div>
+
+        <button type="submit" class="btn-pink-action btn-sm auto-width">💾 Salvar Valor do Sinal e Dados Pix</button>
+    </form>
+</div>
+
+<div class="admin-section-box">
     <h3>🗓️ Controle de Agenda: Liberar / Bloquear Datas e Horários</h3>
     <p class="form-subtext">Você define quais datas do calendário e horários de atendimento estarão disponíveis para suas clientes agendarem.</p>
 
@@ -88,90 +124,7 @@
 </div>
 
 <div class="admin-section-box">
-    <h3>🔐 Alteração de Usuário e Senha de Acesso</h3>
-    <form action="{{ url_for('alterar_senha') }}" method="POST" class="form-flex-column">
-        <div class="form-row">
-            <div class="form-group">
-                <label for="novo_usuario">Novo Nome de Usuário:</label>
-                <input type="text" id="novo_usuario" name="novo_usuario" value="{{ username }}" required>
-            </div>
-            <div class="form-group">
-                <label for="nova_senha">Nova Senha:</label>
-                <input type="password" id="nova_senha" name="nova_senha" placeholder="Nova senha" required>
-            </div>
-            <div class="form-group">
-                <label for="confirmar_senha">Confirmar Nova Senha:</label>
-                <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Confirme a nova senha" required>
-            </div>
-        </div>
-        <button type="submit" class="btn-pink-action btn-sm auto-width">🔒 Atualizar Login e Senha</button>
-    </form>
-</div>
-
-<div class="admin-section-box">
-    <h3>➕ Cadastrar Novo Serviço com Foto</h3>
-    <form action="{{ url_for('adicionar_servico') }}" method="POST" enctype="multipart/form-data" class="form-flex-column margin-bottom">
-        <div class="form-row">
-            <div class="form-group flex-2">
-                <label>Nome do Serviço:</label>
-                <input type="text" name="nome_servico" placeholder="Ex: Encapsulada Luxo" required>
-            </div>
-            <div class="form-group flex-1">
-                <label>Preço (R$):</label>
-                <input type="number" step="0.01" name="preco_servico" placeholder="140.00" required>
-            </div>
-        </div>
-        <div class="form-row">
-            <div class="form-group">
-                <label>📁 Enviar Foto do Dispositivo:</label>
-                <input type="file" name="foto_file" accept="image/*" class="file-input-styled">
-            </div>
-            <div class="form-group">
-                <label>🖼️ Ou Selecionar Existente:</label>
-                <select name="imagem_servico">
-                    {% for img in imagens_disponiveis %}
-                        <option value="{{ img }}">{{ img }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
-        <button type="submit" class="btn-pink-action btn-sm auto-width">+ Cadastrar Serviço</button>
-    </form>
-
-    <hr class="separator">
-
-    <h3>💰 Procedimentos Exclusivos & Gerenciador de Fotos</h3>
-    <div class="services-admin-grid">
-        {% for s in servicos %}
-        <div class="service-admin-card">
-            <div class="thumb-mini">
-                {% if s['imagem'].startswith('http://') or s['imagem'].startswith('https://') %}
-                    <img src="{{ s['imagem'] }}" alt="{{ s['nome'] }}">
-                {% else %}
-                    <img src="{{ url_for('static', filename='images/' + s['imagem']) }}" alt="{{ s['nome'] }}">
-                {% endif %}
-            </div>
-            <form action="{{ url_for('atualizar_servico_foto') }}" method="POST" enctype="multipart/form-data" class="form-flex-sm">
-                <input type="hidden" name="servico_id" value="{{ s['id'] }}">
-                <span class="serv-title">{{ s['nome'] }}</span>
-                <div class="upload-field-box">
-                    <label>📤 Enviar Nova Foto:</label>
-                    <input type="file" name="nova_foto_file" accept="image/*" class="file-input-mini">
-                </div>
-                <label style="font-size: 0.8rem; font-weight: 600;">Valor (R$):</label>
-                <input type="number" step="0.01" name="novo_preco" value="{{ "%.2f"|format(s['preco']) }}" required>
-                <button type="submit" class="btn-dark btn-sm margin-top-xs">💾 Salvar Alterações</button>
-            </form>
-            <form action="{{ url_for('remover_servico', servico_id=s['id']) }}" method="POST" onsubmit="return confirm('Excluir este serviço?');" class="margin-top-xs">
-                <button type="submit" class="btn-danger btn-sm full-width">Excluir</button>
-            </form>
-        </div>
-        {% endfor %}
-    </div>
-</div>
-
-<div class="admin-section-box">
-    <h3>📋 Histórico de Agendamentos Registados</h3>
+    <h3>📋 Histórico de Agendamentos e Formas de Pagamento</h3>
     {% if agendamentos %}
     <div class="table-container">
         <table class="custom-table">
@@ -181,7 +134,9 @@
                     <th>Cliente</th>
                     <th>Contato</th>
                     <th>Serviço</th>
-                    <th>Valor</th>
+                    <th>Valor Total</th>
+                    <th>Sinal</th>
+                    <th>Pagamento</th>
                     <th>Data</th>
                     <th>Hora</th>
                     <th>Ação</th>
@@ -195,6 +150,8 @@
                     <td>{{ a['telefone'] }}</td>
                     <td><span class="badge-executive">{{ a['servico'] }}</span></td>
                     <td>R$ {{ "%.2f"|format(a['preco']) }}</td>
+                    <td><span class="badge-sinal">R$ {{ "%.2f"|format(a['valor_sinal'] or 30.0) }}</span></td>
+                    <td><small>{{ a['forma_pagamento'] or 'Pix' }}</small></td>
                     <td><strong>{{ a['data'] }}</strong></td>
                     <td><strong>{{ a['hora'] }}</strong></td>
                     <td>

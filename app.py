@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v16_css_fixed')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v17_pix_sinal')
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -39,9 +39,21 @@ def init_db():
             preco REAL NOT NULL,
             data TEXT NOT NULL,
             hora TEXT NOT NULL,
+            forma_pagamento TEXT DEFAULT 'Pix (QR Code / Copia e Cola)',
+            valor_sinal REAL DEFAULT 30.0,
             status TEXT DEFAULT 'Confirmado'
         )
     ''')
+
+    # Garantir colunas se já existir banco antigo
+    try:
+        cursor.execute("ALTER TABLE agendamentos ADD COLUMN forma_pagamento TEXT DEFAULT 'Pix (QR Code / Copia e Cola)'")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE agendamentos ADD COLUMN valor_sinal REAL DEFAULT 30.0")
+    except sqlite3.OperationalError:
+        pass
     
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS servicos (
@@ -89,7 +101,12 @@ def init_db():
         ('sms_admin', '11963271437'),
         ('email_admin', ''),
         ('green_instance_id', '710722792308'),
-        ('green_api_token', 'df045e5d35e245f08cda18c3dab805e49ecbf003012d478089')
+        ('green_api_token', 'df045e5d35e245f08cda18c3dab805e49ecbf003012d478089'),
+        ('pix_chave', '11963271437'),
+        ('pix_titular', 'Cathelin Eloim'),
+        ('pix_banco', 'Nubank'),
+        ('valor_sinal_padrao', '30.00'),
+        ('qr_code_image', 'qrcode_pix.png')
     ]
     for c_chave, c_val in configs_iniciais:
         cursor.execute('INSERT OR IGNORE INTO config (chave, valor) VALUES (?, ?)', (c_chave, c_val))
@@ -128,7 +145,7 @@ def init_db():
 
 init_db()
 
-def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
+def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora, forma_pagamento, valor_sinal):
     conn = get_db_connection()
     configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
     conn.close()
@@ -142,7 +159,9 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
         f"👤 *Cliente:* {nome}\n"
         f"📞 *Contato:* {telefone}\n"
         f"✨ *Procedimento:* {servico}\n"
-        f"💰 *Valor:* R$ {preco:.2f}\n"
+        f"💰 *Valor Total:* R$ {preco:.2f}\n"
+        f"💳 *Sinal Solicitado:* R$ {valor_sinal:.2f}\n"
+        f"💵 *Forma de Pagamento:* {forma_pagamento}\n"
         f"📅 *Data:* {data}\n"
         f"⏰ *Horário:* {hora}"
     )
@@ -169,13 +188,17 @@ def booking():
     servicos = conn.execute('SELECT * FROM servicos').fetchall()
     datas_disponiveis = conn.execute('SELECT * FROM datas_config WHERE ativo = 1 ORDER BY data ASC').fetchall()
     horarios_ativos = conn.execute('SELECT * FROM horarios_config WHERE ativo = 1 ORDER BY hora ASC').fetchall()
+    configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
     
+    valor_sinal_padrao = float(configs.get('valor_sinal_padrao', '30.00'))
+
     if request.method == 'POST':
         nome = request.form.get('nome')
         telefone = request.form.get('telefone')
         servico_id = request.form.get('servico_id')
         data = request.form.get('data')
         hora = request.form.get('hora')
+        forma_pagamento = request.form.get('forma_pagamento', 'Pix (QR Code / Copia e Cola)')
 
         dt_valida = conn.execute('SELECT * FROM datas_config WHERE data = ? AND ativo = 1', (data,)).fetchone()
         if not dt_valida:
@@ -193,18 +216,33 @@ def booking():
         
         if servico:
             conn.execute(
-                'INSERT INTO agendamentos (nome, telefone, servico, preco, data, hora) VALUES (?, ?, ?, ?, ?, ?)',
-                (nome, telefone, servico['nome'], servico['preco'], data, hora)
+                '''INSERT INTO agendamentos 
+                   (nome, telefone, servico, preco, data, hora, forma_pagamento, valor_sinal) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+                (nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, valor_sinal_padrao)
             )
             conn.commit()
             conn.close()
 
-            disparar_todos_os_meios(nome, telefone, servico['nome'], servico['preco'], data, hora)
+            disparar_todos_os_meios(nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, valor_sinal_padrao)
 
-            return render_template('booking_sucesso.html', nome=nome, servico=servico['nome'], data=data, hora=hora, preco=servico['preco'])
+            return render_template('booking_sucesso.html', 
+                                   nome=nome, 
+                                   servico=servico['nome'], 
+                                   data=data, 
+                                   hora=hora, 
+                                   preco=servico['preco'],
+                                   forma_pagamento=forma_pagamento,
+                                   valor_sinal=valor_sinal_padrao,
+                                   configs=configs)
 
     conn.close()
-    return render_template('booking.html', servicos=servicos, datas=datas_disponiveis, horarios=horarios_ativos)
+    return render_template('booking.html', 
+                           servicos=servicos, 
+                           datas=datas_disponiveis, 
+                           horarios=horarios_ativos,
+                           configs=configs,
+                           valor_sinal_padrao=valor_sinal_padrao)
 
 @app.route('/api/horarios-ocupados/<data>')
 def horarios_ocupados(data):
@@ -279,6 +317,41 @@ def admin():
                            ticket_medio=ticket_medio,
                            relatorio_servicos=relatorio_servicos,
                            imagens_disponiveis=imagens_disponiveis)
+
+@app.route('/admin/atualizar-sinal-pix', methods=['POST'])
+def atualizar_sinal_pix():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    valor_sinal = request.form.get('valor_sinal_padrao', '').strip()
+    pix_chave = request.form.get('pix_chave', '').strip()
+    pix_titular = request.form.get('pix_titular', '').strip()
+    pix_banco = request.form.get('pix_banco', '').strip()
+
+    conn = get_db_connection()
+    
+    if valor_sinal:
+        conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('valor_sinal_padrao', ?)", (valor_sinal,))
+    if pix_chave:
+        conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_chave', ?)", (pix_chave,))
+    if pix_titular:
+        conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_titular', ?)", (pix_titular,))
+    if pix_banco:
+        conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_banco', ?)", (pix_banco,))
+
+    # Upload da Imagem do QR Code Pix
+    if 'qr_code_file' in request.files and request.files['qr_code_file'].filename != '':
+        file = request.files['qr_code_file']
+        if file and allowed_file(file.filename):
+            filename = secure_filename('qrcode_pix.png')
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('qr_code_image', ?)", (filename,))
+
+    conn.commit()
+    conn.close()
+
+    flash('Valor do Sinal e Dados do Pix atualizados com sucesso!', 'success')
+    return redirect(url_for('admin'))
 
 @app.route('/admin/adicionar-data', methods=['POST'])
 def adicionar_data():
@@ -390,11 +463,11 @@ def atualizar_config_api():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    campos = ['whatsapp_admin', 'sms_admin', 'email_admin', 'green_instance_id', 'green_api_token', 'telegram_bot_token', 'telegram_chat_id', 'twilio_account_sid', 'twilio_auth_token', 'twilio_phone_number', 'resend_api_key']
+    campos = ['whatsapp_admin', 'sms_admin', 'email_admin', 'green_instance_id', 'green_api_token']
     
     for c in campos:
         val = request.form.get(c, '').strip()
-        conn.execute("INSERT OR REPLACE INTO config (id, chave, valor) VALUES ((SELECT id FROM config WHERE chave=?), ?, ?)", (c, c, val))
+        conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES (?, ?)", (c, val))
         
     conn.commit()
     conn.close()

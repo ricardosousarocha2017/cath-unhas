@@ -3,7 +3,17 @@
 {% block content %}
 <div class="glass-form-container">
     <h2>🗓️ Agendar Atendimento com Cathelin Eloim</h2>
-    <p class="form-subtext">Selecione uma data no calendário e escolha um horário disponível.</p>
+    <p class="form-subtext">Selecione uma data no calendário, escolha o horário e a forma de pagamento.</p>
+
+    <!-- Legenda Informativa do Sinal -->
+    <div class="sinal-info-banner">
+        <div class="banner-icon">💡</div>
+        <div class="banner-text">
+            <strong>Informação importante sobre a Reserva (Sinal):</strong><br>
+            Para garantir a sua reserva de horário, é necessário efetuar o pagamento de um <strong>sinal de garantia no valor de R$ {{ "%.2f"|format(valor_sinal_padrao) }}</strong>.<br>
+            O valor restante do procedimento será pago no momento do atendimento no Studio.
+        </div>
+    </div>
 
     <form action="{{ url_for('booking') }}" method="POST" id="bookingForm">
         <div class="form-group">
@@ -43,7 +53,36 @@
             </div>
         </div>
 
-        <button type="submit" class="btn-pink-action full-width" id="btnSubmit">Confirmar Agendamento</button>
+        <!-- Seleção da Forma de Pagamento do Sinal / Atendimento -->
+        <div class="form-group margin-top-sm">
+            <label for="forma_pagamento">💳 Forma de Pagamento:</label>
+            <select id="forma_pagamento" name="forma_pagamento" required onchange="togglePixSection(this.value)">
+                <option value="Pix (QR Code / Copia e Cola)" selected>📱 Pix — Sinal via QR Code / Chave Pix</option>
+                <option value="Cartão de Crédito / Débito no Studio">💳 Cartão de Crédito / Débito (no Studio)</option>
+                <option value="Dinheiro no Studio">💵 Dinheiro (no Studio)</option>
+            </select>
+        </div>
+
+        <!-- Seção Dinâmica com QR Code e Chave Pix -->
+        <div id="pixPaymentBox" class="pix-payment-card">
+            <h4>📱 Pagamento do Sinal via Pix — R$ {{ "%.2f"|format(valor_sinal_padrao) }}</h4>
+            <p>Escaneie o QR Code abaixo ou copie a chave Pix para realizar o pagamento do sinal:</p>
+            
+            <div class="qr-code-wrapper">
+                <img src="{{ url_for('static', filename='images/' + configs.get('qr_code_image', 'qrcode_pix.png')) }}" alt="QR Code Pix Cathelin Eloim" class="qr-code-img">
+            </div>
+
+            <div class="pix-key-box">
+                <span>Chave Pix (Telefone): <strong>{{ configs.get('pix_chave', '11963271437') }}</strong></span>
+                <button type="button" class="btn-copy-pix" onclick="copiarPix('{{ configs.get('pix_chave', '11963271437') }}')">📋 Copiar Chave</button>
+            </div>
+            <div class="pix-meta-info">
+                <span>Titular: <strong>{{ configs.get('pix_titular', 'Cathelin Eloim') }}</strong></span> | 
+                <span>Banco: <strong>{{ configs.get('pix_banco', 'Nubank') }}</strong></span>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-pink-action full-width margin-top-md" id="btnSubmit">Confirmar Agendamento</button>
     </form>
 </div>
 
@@ -70,6 +109,21 @@ function carregarHorariosOcupados(dataSelecionada) {
                 }
             });
         });
+}
+
+function togglePixSection(val) {
+    const pixBox = document.getElementById('pixPaymentBox');
+    if (val.includes('Pix')) {
+        pixBox.style.display = 'block';
+    } else {
+        pixBox.style.display = 'none';
+    }
+}
+
+function copiarPix(chave) {
+    navigator.clipboard.writeText(chave).then(() => {
+        alert('Chave Pix copiada com sucesso: ' + chave);
+    });
 }
 </script>
 {% endblock %}
