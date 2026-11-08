@@ -1,3 +1,3 @@
-# Cathelin Eloim | Nail Designer - Plataforma Oficial com Gestão de Credenciais e Design Instagram
+# Cathelin Eloim | Nail Designer - Personalização de Fotos dos Procedimentos Exclusivos
 
-Atualização da plataforma com branding oficial @cath_unhass (Itapecerica da Serra), módulo completo de alteração de usuário/senha no Painel Admin e disparo automático para 11963271437.
+Atribuição exata das fotos enviadas para cada um dos procedimentos da página inicial.

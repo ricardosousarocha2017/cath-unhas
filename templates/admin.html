@@ -124,7 +124,7 @@
     {% endif %}
 </div>
 
-<!-- Módulo 4: Gerenciar Serviços & Preços -->
+<!-- Módulo 4: Gerenciar Serviços & Fotos Reais -->
 <div class="admin-section-box">
     <h3>➕ Cadastrar Novo Serviço</h3>
     <form action="{{ url_for('adicionar_servico') }}" method="POST" class="form-flex margin-bottom">
@@ -139,10 +139,10 @@
         <div class="form-group flex-2">
             <label>Foto do Serviço:</label>
             <select name="imagem_servico">
-                <option value="img_brasil.jpeg">Foto 1 - Nail Art Brasil</option>
-                <option value="img_gel.jpeg">Foto 2 - Banho de Gel Nude</option>
-                <option value="img_coracoes.jpeg">Foto 3 - Corações Vermelhos</option>
-                <option value="img_silver.jpeg">Foto 4 - Stiletto Prata</option>
+                <option value="alongamento_molde.jpeg">Foto 1 - Alongamento Molde F1</option>
+                <option value="manutencao_molde.jpeg">Foto 2 - Manutenção de Molde F1</option>
+                <option value="banho_gel.jpeg">Foto 3 - Banho de Gel</option>
+                <option value="manutencao_banho_gel.jpeg">Foto 4 - Manutenção Banho de Gel</option>
             </select>
         </div>
         <button type="submit" class="btn-gold-action btn-sm">+ Cadastrar</button>
@@ -150,7 +150,7 @@
 
     <hr class="separator">
 
-    <h3>💰 Preços dos Procedimentos</h3>
+    <h3>💰 Procedimentos Exclusivos & Imagens Associadas</h3>
     <div class="services-admin-grid">
         {% for s in servicos %}
         <div class="service-admin-card">
@@ -160,8 +160,15 @@
             <form action="{{ url_for('atualizar_preco') }}" method="POST" class="form-flex-sm">
                 <input type="hidden" name="servico_id" value="{{ s['id'] }}">
                 <span class="serv-title">{{ s['nome'] }}</span>
+                <label style="font-size: 0.75rem; color: #6b545f;">Trocar Imagem:</label>
+                <select name="imagem_servico" style="padding: 4px; font-size: 0.8rem; border-radius: 6px;">
+                    <option value="alongamento_molde.jpeg" {% if s['imagem'] == 'alongamento_molde.jpeg' %}selected{% endif %}>Foto Alongamento F1</option>
+                    <option value="manutencao_molde.jpeg" {% if s['imagem'] == 'manutencao_molde.jpeg' %}selected{% endif %}>Foto Manutenção F1</option>
+                    <option value="banho_gel.jpeg" {% if s['imagem'] == 'banho_gel.jpeg' %}selected{% endif %}>Foto Banho de Gel</option>
+                    <option value="manutencao_banho_gel.jpeg" {% if s['imagem'] == 'manutencao_banho_gel.jpeg' %}selected{% endif %}>Foto Manutenção Banho Gel</option>
+                </select>
                 <input type="number" step="0.01" name="novo_preco" value="{{ "%.2f"|format(s['preco']) }}" required>
-                <button type="submit" class="btn-dark btn-sm">Salvar</button>
+                <button type="submit" class="btn-dark btn-sm">Salvar Alterações</button>
             </form>
             <form action="{{ url_for('remover_servico', servico_id=s['id']) }}" method="POST" onsubmit="return confirm('Excluir este serviço?');" class="margin-top-xs">
                 <button type="submit" class="btn-danger btn-sm">Excluir</button>

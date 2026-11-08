@@ -6,7 +6,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_2026_v7')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_2026_v8')
 
 DB_NAME = 'database.db'
 
@@ -81,14 +81,18 @@ def init_db():
     for c_chave, c_val in configs_iniciais:
         cursor.execute('INSERT OR IGNORE INTO config (chave, valor) VALUES (?, ?)', (c_chave, c_val))
 
+    # Mapeamento correto dos procedimentos com suas imagens específicas
     servicos_iniciais = [
-        ('Alongamento Molde F1', 150.00, 'img_brasil.jpeg'),
-        ('Manutenção de Molde F1', 90.00, 'img_gel.jpeg'),
-        ('Banho de Gel', 100.00, 'img_coracoes.jpeg'),
-        ('Manutenção de Banho de Gel', 70.00, 'img_silver.jpeg')
+        ('Alongamento Molde F1', 150.00, 'alongamento_molde.jpeg'),
+        ('Manutenção de Molde F1', 90.00, 'manutencao_molde.jpeg'),
+        ('Banho de Gel', 100.00, 'banho_gel.jpeg'),
+        ('Manutenção de Banho de Gel', 70.00, 'manutencao_banho_gel.jpeg')
     ]
     for s_nome, s_preco, s_img in servicos_iniciais:
-        cursor.execute('INSERT OR IGNORE INTO servicos (nome, preco, imagem) VALUES (?, ?, ?)', (s_nome, s_preco, s_img))
+        cursor.execute('''
+            INSERT INTO servicos (nome, preco, imagem) VALUES (?, ?, ?)
+            ON CONFLICT(nome) DO UPDATE SET imagem=excluded.imagem, preco=excluded.preco
+        ''', (s_nome, s_preco, s_img))
 
     horarios_padrao = ["08:00", "09:30", "11:00", "13:30", "15:00", "16:30", "18:00"]
     for h in horarios_padrao:
@@ -346,7 +350,7 @@ def adicionar_servico():
 
     nome_servico = request.form.get('nome_servico').strip()
     preco_servico = request.form.get('preco_servico')
-    imagem_servico = request.form.get('imagem_servico') or 'img_gel.jpeg'
+    imagem_servico = request.form.get('imagem_servico') or 'banho_gel.jpeg'
 
     if nome_servico and preco_servico:
         conn = get_db_connection()
@@ -382,13 +386,17 @@ def atualizar_preco():
 
     servico_id = request.form.get('servico_id')
     novo_preco = request.form.get('novo_preco')
+    nova_imagem = request.form.get('imagem_servico')
 
     if servico_id and novo_preco:
         conn = get_db_connection()
-        conn.execute('UPDATE servicos SET preco = ? WHERE id = ?', (float(novo_preco), servico_id))
+        if nova_imagem:
+            conn.execute('UPDATE servicos SET preco = ?, imagem = ? WHERE id = ?', (float(novo_preco), nova_imagem, servico_id))
+        else:
+            conn.execute('UPDATE servicos SET preco = ? WHERE id = ?', (float(novo_preco), servico_id))
         conn.commit()
         conn.close()
-        flash('Preço alterado com sucesso!', 'success')
+        flash('Serviço atualizado com sucesso!', 'success')
 
     return redirect(url_for('admin'))
 
