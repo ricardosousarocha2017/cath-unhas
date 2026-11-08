@@ -3,7 +3,7 @@
 {% block content %}
 <div class="glass-form-container">
     <h2>🗓️ Agendar Atendimento com Cathelin Eloim</h2>
-    <p class="form-subtext">Selecione uma das datas e horários disponibilizados pela administração.</p>
+    <p class="form-subtext">Selecione uma data no calendário e escolha os horários disponíveis definidos pela administração.</p>
 
     <form action="{{ url_for('booking') }}" method="POST" id="bookingForm">
         <div class="form-group">
@@ -28,16 +28,8 @@
 
         <div class="form-row">
             <div class="form-group">
-                <label for="data">📅 Data Disponível:</label>
-                <select id="data" name="data" required onchange="carregarHorariosOcupados(this.value)">
-                    <option value="" disabled selected>Escolha uma data liberada...</option>
-                    {% for d in datas %}
-                        <option value="{{ d['data'] }}">{{ d['data'] }}</option>
-                    {% endfor %}
-                </select>
-                {% if not datas %}
-                    <span class="warning-text">Nenhuma data liberada no momento. Entre em contato por WhatsApp.</span>
-                {% endif %}
+                <label for="data">📅 Selecione a Data no Calendário:</label>
+                <input type="date" id="data" name="data" required class="input-date-styled" onchange="carregarHorariosOcupados(this.value)">
             </div>
             
             <div class="form-group">
@@ -60,7 +52,6 @@ function carregarHorariosOcupados(dataSelecionada) {
     const selectHora = document.getElementById('hora');
     const options = selectHora.querySelectorAll('option[data-hora]');
     
-    // Resetar opções
     options.forEach(opt => {
         opt.disabled = false;
         opt.textContent = opt.getAttribute('data-hora');
@@ -78,7 +69,6 @@ function carregarHorariosOcupados(dataSelecionada) {
                     opt.textContent = horaVal + ' ❌ (Ocupado)';
                 }
             });
-            selectHora.selectedIndex = 0;
         });
 }
 </script>

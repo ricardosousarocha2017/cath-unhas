@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_dates_v11')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_dates_v12')
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -52,7 +52,6 @@ def init_db():
         )
     ''')
 
-    # Tabela de Datas Liberadas pelo Administrador
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS datas_config (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -61,7 +60,6 @@ def init_db():
         )
     ''')
 
-    # Tabela de Horários Liberados pelo Administrador
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS horarios_config (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,7 +116,6 @@ def init_db():
     for h in horarios_padrao:
         cursor.execute('INSERT OR IGNORE INTO horarios_config (hora, ativo) VALUES (?, 1)', (h,))
 
-    # Inserir por padrão a data de hoje e os próximos 7 dias como liberados
     hoje = datetime.now()
     cursor.execute('SELECT COUNT(*) FROM datas_config')
     if cursor.fetchone()[0] == 0:
@@ -138,26 +135,14 @@ def init_db():
 init_db()
 
 def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
-    """Dispara notificações para o número 11963271437."""
     conn = get_db_connection()
     configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
     conn.close()
 
     target_wa = configs.get('whatsapp_admin', '5511963271437').strip()
     target_sms = configs.get('sms_admin', '11963271437').strip()
-    
     green_id = configs.get('green_instance_id', '').strip()
     green_token = configs.get('green_api_token', '').strip()
-    
-    tg_token = configs.get('telegram_bot_token', '').strip()
-    tg_chat = configs.get('telegram_chat_id', '').strip()
-    
-    tw_sid = configs.get('twilio_account_sid', '').strip()
-    tw_token = configs.get('twilio_auth_token', '').strip()
-    tw_from = configs.get('twilio_phone_number', '').strip()
-    
-    email_admin = configs.get('email_admin', '').strip()
-    resend_key = configs.get('resend_api_key', '').strip()
 
     msg_texto = (
         f"💅 *NOVO AGENDAMENTO - Cathelin Eloim | Nail Designer*\n\n"
@@ -178,53 +163,6 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
         except Exception as e:
             print(f"Erro WhatsApp Green-API: {e}")
 
-    if tw_sid and tw_token and tw_from and target_sms:
-        try:
-            sms_body = f"Cath Unhas: Novo Agendamento - {nome} ({servico}) em {data} as {hora}. R$ {preco:.2f}"
-            url_twilio = f"https://api.twilio.com/2010-04-01/Accounts/{tw_sid}/Messages.json"
-            requests.post(
-                url_twilio,
-                data={'From': tw_from, 'To': f"+55{target_sms}", 'Body': sms_body},
-                auth=(tw_sid, tw_token),
-                timeout=4
-            )
-        except Exception as e:
-            print(f"Erro SMS Twilio: {e}")
-
-    if tg_token and tg_chat:
-        try:
-            url_tg = f"https://api.telegram.org/bot{tg_token}/sendMessage"
-            payload_tg = {"chat_id": tg_chat, "text": msg_texto, "parse_mode": "Markdown"}
-            requests.post(url_tg, json=payload_tg, timeout=4)
-        except Exception as e:
-            print(f"Erro Telegram: {e}")
-
-    if resend_key and email_admin:
-        try:
-            url_resend = "https://api.resend.com/emails"
-            email_payload = {
-                "from": "Cath Unhas <onboarding@resend.dev>",
-                "to": [email_admin],
-                "subject": f"💅 NOVO AGENDAMENTO: {nome} - {servico}",
-                "html": f"""
-                <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #fdf0f5; border-radius: 12px;">
-                    <h2 style="color: #d63384;">💅 Novo Agendamento Confirmado!</h2>
-                    <ul style="line-height: 1.8;">
-                        <li><strong>Cliente:</strong> {nome}</li>
-                        <li><strong>Contato:</strong> {telefone}</li>
-                        <li><strong>Serviço:</strong> {servico}</li>
-                        <li><strong>Valor:</strong> R$ {preco:.2f}</li>
-                        <li><strong>Data:</strong> {data}</li>
-                        <li><strong>Horário:</strong> {hora}</li>
-                    </ul>
-                </div>
-                """
-            }
-            headers_resend = {"Authorization": f"Bearer {resend_key}", "Content-Type": "application/json"}
-            requests.post(url_resend, json=email_payload, headers=headers_resend, timeout=5)
-        except Exception as e:
-            print(f"Erro E-mail Resend: {e}")
-
 @app.route('/')
 def home():
     conn = get_db_connection()
@@ -236,11 +174,7 @@ def home():
 def booking():
     conn = get_db_connection()
     servicos = conn.execute('SELECT * FROM servicos').fetchall()
-    
-    # Apenas DATAS marcadas como ATIVAS pelo administrador
     datas_disponiveis = conn.execute('SELECT * FROM datas_config WHERE ativo = 1 ORDER BY data ASC').fetchall()
-    
-    # Apenas HORÁRIOS marcados como ATIVOS pelo administrador
     horarios_ativos = conn.execute('SELECT * FROM horarios_config WHERE ativo = 1 ORDER BY hora ASC').fetchall()
     
     if request.method == 'POST':
@@ -250,14 +184,6 @@ def booking():
         data = request.form.get('data')
         hora = request.form.get('hora')
 
-        # Validação estrita de Segurança: A data precisa estar liberada pelo Admin
-        dt_valida = conn.execute('SELECT * FROM datas_config WHERE data = ? AND ativo = 1', (data,)).fetchone()
-        if not dt_valida:
-            flash('A data selecionada não está disponível para agendamento.', 'danger')
-            conn.close()
-            return redirect(url_for('booking'))
-
-        # Validação estrita: O horário não pode já estar ocupado nessa data
         ocupado = conn.execute('SELECT * FROM agendamentos WHERE data = ? AND hora = ?', (data, hora)).fetchone()
         if ocupado:
             flash(f'O horário {hora} no dia {data} já foi reservado por outra cliente. Escolha outro horário.', 'danger')
@@ -281,7 +207,6 @@ def booking():
     conn.close()
     return render_template('booking.html', servicos=servicos, datas=datas_disponiveis, horarios=horarios_ativos)
 
-# API Endpoint para buscar horários já ocupados em determinada data escolhida no formulário
 @app.route('/api/horarios-ocupados/<data>')
 def horarios_ocupados(data):
     conn = get_db_connection()
@@ -356,7 +281,6 @@ def admin():
                            relatorio_servicos=relatorio_servicos,
                            imagens_disponiveis=imagens_disponiveis)
 
-# ROTAS DE GESTÃO DE DATAS PELO ADMIN
 @app.route('/admin/adicionar-data', methods=['POST'])
 def adicionar_data():
     if not session.get('logged_in'):
@@ -403,7 +327,6 @@ def remover_data(data_id):
     flash('Data removida com sucesso!', 'success')
     return redirect(url_for('admin'))
 
-# ROTAS DE GESTÃO DE HORÁRIOS PELO ADMIN
 @app.route('/admin/adicionar-horario', methods=['POST'])
 def adicionar_horario():
     if not session.get('logged_in'):

@@ -17,8 +17,8 @@
             <a href="{{ url_for('home') }}">Início</a>
             <a href="{{ url_for('booking') }}">Agendar Horário</a>
             {% if session.get('logged_in') %}
-                <a href="{{ url_for('admin') }}" class="btn-admin-nav">⚙️ Gestão & Acesso</a>
-                <a href="{{ url_for('logout') }}" class="btn-logout-nav">Sair</a>
+                <a href="{{ url_for('admin') }}">⚙️ Gestão & Acesso</a>
+                <a href="{{ url_for('logout') }}">Sair</a>
             {% else %}
                 <a href="{{ url_for('login') }}">Área Restrita</a>
             {% endif %}
