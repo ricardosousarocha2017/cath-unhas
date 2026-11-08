@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v17_pix_sinal')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v18_fix_deploy')
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -45,7 +45,6 @@ def init_db():
         )
     ''')
 
-    # Garantir colunas se já existir banco antigo
     try:
         cursor.execute("ALTER TABLE agendamentos ADD COLUMN forma_pagamento TEXT DEFAULT 'Pix (QR Code / Copia e Cola)'")
     except sqlite3.OperationalError:
@@ -339,7 +338,6 @@ def atualizar_sinal_pix():
     if pix_banco:
         conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_banco', ?)", (pix_banco,))
 
-    # Upload da Imagem do QR Code Pix
     if 'qr_code_file' in request.files and request.files['qr_code_file'].filename != '':
         file = request.files['qr_code_file']
         if file and allowed_file(file.filename):
