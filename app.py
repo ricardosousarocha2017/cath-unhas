@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v20_link_comprovantes')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v21_fix_admin_route')
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -47,7 +47,6 @@ def init_db():
         )
     ''')
 
-    # Garantir migração de colunas para bancos existentes
     colunas_novas = [
         ("forma_pagamento", "TEXT DEFAULT 'Pix (QR Code / Copia e Cola)'"),
         ("link_pagamento", "TEXT DEFAULT ''"),
@@ -160,7 +159,6 @@ def disparar_comprovantes_e_notificacoes(agendamento_id, nome, telefone, servico
     green_id = configs.get('green_instance_id', '').strip()
     green_token = configs.get('green_api_token', '').strip()
 
-    # Comprovante detalhado para o Administrador
     msg_admin = (
         f"🧾 *COMPROVANTE DE AGENDAMENTO (ADMIN)*\n"
         f"📋 *ID da Reserva:* #{agendamento_id}\n"
@@ -178,7 +176,6 @@ def disparar_comprovantes_e_notificacoes(agendamento_id, nome, telefone, servico
         try:
             url_green = f"https://7107.api.greenapi.com/waInstance{green_id}/sendMessage/{green_token}"
             headers = {'Content-Type': 'application/json'}
-            # Enviar para o Administrador
             requests.post(url_green, json={"chatId": f"{target_wa}@c.us", "message": msg_admin}, headers=headers, timeout=5)
         except Exception as e:
             print(f"Erro WhatsApp Admin: {e}")
@@ -211,7 +208,7 @@ def booking():
 
         if 'Pix' in forma_pagamento:
             status_sinal = 'Pix Enviado (A Confirmar)'
-        elif 'Crédito' in forma_pagamento or 'Débito' in forma_pagamento:
+        elif 'Crédito' in forma_pagamento or 'Débito' in forma_pagamento or 'Cartão' in forma_pagamento:
             status_sinal = 'Link Cartão Emitido (Pendente)'
         else:
             status_sinal = 'Pagar Sinal no Studio'
@@ -326,7 +323,7 @@ def admin():
     ticket_medio = (total_faturamento / total_atendimentos) if total_atendimentos > 0 else 0.0
 
     sinais_pix = len([a for a in agendamentos if 'Pix' in (a['forma_pagamento'] or '')])
-    sinais_cartao = len([a for a in agendamentos if 'Crédito' in (a['forma_pagamento'] or '') or 'Débito' in (a['forma_pagamento'] or '')])
+    sinais_cartao = len([a for a in agendamentos if 'Crédito' in (a['forma_pagamento'] or '') or 'Débito' in (a['forma_pagamento'] or '') or 'Cartão' in (a['forma_pagamento'] or '')])
     sinais_studio = len([a for a in agendamentos if 'Studio' in (a['forma_pagamento'] or '')])
 
     relatorio_servicos = conn.execute('''
@@ -349,7 +346,7 @@ def admin():
                            agendamentos=agendamentos, 
                            servicos=servicos, 
                            datas_config=datas_config,
-                           horarios=horarios_config, 
+                           horarios_config=horarios_config, 
                            configs=configs,
                            username=session.get('username'),
                            total_faturamento=total_faturamento,
