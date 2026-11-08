@@ -26,44 +26,15 @@ h1, h2, h3, .logo .brand-title {
     box-shadow: 0 4px 20px rgba(170, 57, 110, 0.25);
 }
 
-.navbar .logo {
-    display: flex;
-    flex-direction: column;
-}
-
-.brand-title {
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: #ffe6f0;
-    letter-spacing: 0.5px;
-}
-
-.brand-sub {
-    font-size: 0.8rem;
-    color: #f7b2d2;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-}
+.navbar .logo { display: flex; flex-direction: column; }
+.brand-title { font-size: 1.6rem; font-weight: 700; color: #ffe6f0; }
+.brand-sub { font-size: 0.8rem; color: #f7b2d2; text-transform: uppercase; }
 
 .navbar nav a {
     color: #ffffff;
     text-decoration: none;
     margin-left: 1.8rem;
     font-weight: 500;
-    font-size: 0.95rem;
-}
-
-.btn-admin-nav {
-    background: rgba(255, 255, 255, 0.2);
-    padding: 6px 14px;
-    border-radius: 20px;
-    border: 1px solid #ffe6f0;
-}
-
-.btn-logout-nav {
-    background: rgba(0, 0, 0, 0.15);
-    padding: 6px 14px;
-    border-radius: 20px;
 }
 
 .main-wrapper {
@@ -79,10 +50,9 @@ h1, h2, h3, .logo .brand-title {
     margin-bottom: 1.5rem;
     font-weight: 600;
 }
-.alert-success { background: #e2f0d9; color: #2d572c; border: 1px solid #b8e0a8; }
-.alert-danger { background: #ffe3eb; color: #9c1c4b; border: 1px solid #f7b3c6; }
+.alert-success { background: #e2f0d9; color: #2d572c; }
+.alert-danger { background: #ffe3eb; color: #9c1c4b; }
 
-/* Bio Instagram Style Banner em Rosa Chic */
 .insta-profile-hero {
     background: #ffffff;
     border-radius: 24px;
@@ -92,70 +62,13 @@ h1, h2, h3, .logo .brand-title {
     margin-bottom: 2.5rem;
 }
 
-.insta-hero-card {
-    display: flex;
-    align-items: center;
-    gap: 3rem;
-}
-
-@media (max-width: 768px) {
-    .insta-hero-card {
-        flex-direction: column;
-        text-align: center;
-        gap: 1.5rem;
-    }
-}
+.insta-hero-card { display: flex; align-items: center; gap: 3rem; }
 
 .avatar-ring {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    padding: 4px;
+    width: 150px; height: 150px; border-radius: 50%; padding: 4px;
     background: linear-gradient(45deg, #ff758c, #ff7eb3, #d63384, #aa396e);
 }
-
-.avatar-ring img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    border-radius: 50%;
-    border: 3px solid white;
-}
-
-.profile-handle {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 0.4rem;
-}
-
-.profile-handle h1 {
-    font-size: 1.8rem;
-    color: #702646;
-}
-
-.verified-badge {
-    font-size: 1.3rem;
-}
-
-.profile-name {
-    font-size: 1.2rem;
-    color: #aa396e;
-    margin-bottom: 0.8rem;
-}
-
-.profile-bio {
-    font-size: 0.98rem;
-    color: #5c3546;
-    line-height: 1.6;
-    margin-bottom: 1.5rem;
-}
-
-.profile-actions {
-    display: flex;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
+.avatar-ring img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; border: 3px solid white; }
 
 .btn-pink-action {
     display: inline-block;
@@ -167,7 +80,6 @@ h1, h2, h3, .logo .brand-title {
     font-weight: 700;
     border: none;
     cursor: pointer;
-    box-shadow: 0 6px 20px rgba(214, 51, 132, 0.35);
 }
 
 .btn-insta-outline {
@@ -178,116 +90,6 @@ h1, h2, h3, .logo .brand-title {
     padding: 12px 24px;
     border-radius: 25px;
     text-decoration: none;
-    font-weight: 600;
-}
-
-/* Stories Destaques em Rosa Soft */
-.highlights-section {
-    margin-bottom: 3rem;
-    text-align: center;
-}
-
-.highlights-title {
-    font-size: 1.1rem;
-    color: #aa396e;
-    margin-bottom: 1.2rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.highlights-grid {
-    display: flex;
-    justify-content: center;
-    gap: 2.2rem;
-    flex-wrap: wrap;
-}
-
-.highlight-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.highlight-circle {
-    width: 76px;
-    height: 76px;
-    border-radius: 50%;
-    border: 2px solid #f7b2d2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #ffffff;
-    font-size: 2rem;
-    box-shadow: 0 4px 12px rgba(170, 57, 110, 0.08);
-}
-
-.highlight-item p {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #702646;
-}
-
-.section-title {
-    text-align: center;
-    font-size: 2.2rem;
-    color: #702646;
-    margin-bottom: 2.2rem;
-}
-
-.services-luxury-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2rem;
-    margin-bottom: 3.5rem;
-}
-
-.service-card-executive {
-    background: #ffffff;
-    border-radius: 18px;
-    overflow: hidden;
-    box-shadow: 0 8px 24px rgba(214, 51, 132, 0.07);
-    border: 1px solid #f9dbe7;
-    display: flex;
-    flex-direction: column;
-}
-
-.card-thumb {
-    height: 250px;
-    overflow: hidden;
-}
-
-.card-thumb img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.card-content {
-    padding: 1.6rem;
-    text-align: center;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-}
-
-.price-val {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #d63384;
-    margin-bottom: 1.2rem;
-}
-
-.btn-service-booking {
-    display: inline-block;
-    background: linear-gradient(135deg, #aa396e, #702646);
-    color: white;
-    padding: 10px 22px;
-    border-radius: 20px;
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 600;
 }
 
 .glass-form-container {
@@ -300,271 +102,30 @@ h1, h2, h3, .logo .brand-title {
     margin: 0 auto;
 }
 
-.small-card { max-width: 450px; }
-
-.form-subtext {
-    color: #8c4a68;
-    font-size: 0.95rem;
-    margin-bottom: 2rem;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 1.4rem;
-}
-
-.form-group label {
-    font-weight: 600;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
-    color: #702646;
-}
-
+.form-group { display: flex; flex-direction: column; margin-bottom: 1.4rem; }
+.form-group label { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.5rem; color: #702646; }
 .form-group input, .form-group select {
-    padding: 12px 16px;
-    border: 1px solid #f4b8d3;
-    border-radius: 10px;
-    font-size: 0.95rem;
-    outline: none;
-    background-color: #fff9fc;
+    padding: 12px 16px; border: 1px solid #f4b8d3; border-radius: 10px; font-size: 0.95rem; outline: none; background-color: #fff9fc;
 }
 
-.form-row {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1.2rem;
-}
-
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.2rem; }
 .full-width { width: 100%; }
-.auto-width { width: auto; min-width: 200px; }
 
-.text-center { text-align: center; }
-.luxury-icon { font-size: 4rem; margin-bottom: 0.5rem; }
-
-.summary-card {
-    background: #fff0f6;
-    border: 1px solid #f9dbe7;
-    padding: 1.5rem;
-    border-radius: 14px;
-    margin: 1.8rem 0;
-    text-align: left;
-}
-
-.summary-row {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.8rem;
-    font-size: 0.95rem;
-}
-
-.privacy-info {
-    color: #2d572c;
-    font-weight: 600;
-    font-size: 0.95rem;
-    margin-bottom: 1.5rem;
-}
-
-.kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2.2rem;
-}
-
-.kpi-card {
-    background: white;
-    padding: 1.8rem;
-    border-radius: 18px;
-    box-shadow: 0 4px 16px rgba(170, 57, 110, 0.05);
-    display: flex;
-    align-items: center;
-    gap: 1.4rem;
-}
-
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; margin-bottom: 2.2rem; }
+.kpi-card { background: white; padding: 1.8rem; border-radius: 18px; display: flex; align-items: center; gap: 1.4rem; }
 .gold-border { border-left: 5px solid #d63384; }
 .pink-border { border-left: 5px solid #ff7eb3; }
 .purple-border { border-left: 5px solid #702646; }
 
-.kpi-icon {
-    font-size: 2.6rem;
-    background: #fff0f6;
-    padding: 12px;
-    border-radius: 14px;
-}
+.admin-section-box { background: white; padding: 2.2rem; border-radius: 20px; border: 1px solid #f9dbe7; margin-bottom: 2.2rem; }
+.highlight-box { border-left: 6px solid #d63384; background: #fff7fa; }
 
-.kpi-data h4 {
-    color: #8c4a68;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-}
+.schedule-control-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.8rem; margin-top: 1.2rem; }
+.control-box { background: white; padding: 1.4rem; border-radius: 14px; border: 1px solid #f9dbe7; }
 
-.kpi-val {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #702646;
-}
+.tags-container { display: flex; flex-wrap: wrap; gap: 0.6rem; margin-top: 0.8rem; }
+.tag-item { display: flex; align-items: center; gap: 0.4rem; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+.tag-active { background: #e2f0d9; color: #2d572c; }
+.tag-inactive { background: #ffe3eb; color: #9c1c4b; }
 
-.admin-section-box {
-    background: white;
-    padding: 2.2rem;
-    border-radius: 20px;
-    box-shadow: 0 4px 16px rgba(170, 57, 110, 0.05);
-    border: 1px solid #f9dbe7;
-    margin-bottom: 2.2rem;
-}
-
-.highlight-box {
-    border-left: 6px solid #d63384;
-    background: #fff7fa;
-}
-
-.sub-heading {
-    margin: 1.2rem 0 0.8rem 0;
-    color: #702646;
-}
-
-.form-flex-column {
-    display: flex;
-    flex-direction: column;
-    gap: 1.2rem;
-}
-
-.table-container { overflow-x: auto; }
-
-.custom-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
-}
-
-.custom-table th, .custom-table td {
-    padding: 14px;
-    text-align: left;
-    border-bottom: 1px solid #f9dbe7;
-}
-
-.custom-table th { background: #fff0f6; color: #702646; font-size: 0.85rem; }
-
-.btn-dark {
-    background: #702646;
-    color: white;
-    padding: 12px 24px;
-    border-radius: 8px;
-    border: none;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.services-admin-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 1.4rem;
-    margin-top: 1rem;
-}
-
-.service-admin-card {
-    background: #fff9fc;
-    padding: 1.2rem;
-    border-radius: 14px;
-    border: 1px solid #f9dbe7;
-}
-
-.thumb-mini {
-    height: 140px;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-bottom: 0.8rem;
-}
-
-.thumb-mini img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.form-flex-sm {
-    display: flex;
-    flex-direction: column;
-    gap: 0.6rem;
-}
-
-.upload-field-box {
-    background: white;
-    padding: 8px;
-    border-radius: 8px;
-    border: 1px solid #f4b8d3;
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.upload-field-box label {
-    font-size: 0.75rem;
-    color: #702646;
-    font-weight: 600;
-}
-
-.file-input-mini {
-    font-size: 0.75rem;
-}
-
-.input-mini-text {
-    padding: 4px 8px;
-    font-size: 0.8rem;
-    border: 1px solid #f4b8d3;
-    border-radius: 6px;
-}
-
-.select-mini {
-    padding: 4px;
-    font-size: 0.8rem;
-    border-radius: 6px;
-    border: 1px solid #f4b8d3;
-}
-
-.file-input-styled {
-    padding: 8px;
-    background: #fff0f6;
-    border: 1px dashed #f4b8d3;
-    border-radius: 8px;
-}
-
-.serv-title { font-weight: 700; color: #702646; font-size: 1rem; }
-
-.btn-danger {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-}
-
-.btn-sm { padding: 8px 14px; font-size: 0.85rem; }
-
-.badge-executive {
-    background: #fff0f6;
-    color: #702646;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.badge-auto {
-    background: #e2f0d9;
-    color: #2d572c;
-    padding: 4px 12px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 700;
-}
-
-footer {
-    text-align: center;
-    padding: 2rem;
-    background: #702646;
-    color: #ffe6f0;
-    font-size: 0.85rem;
-}
+footer { text-align: center; padding: 2rem; background: #702646; color: #ffe6f0; font-size: 0.85rem; }
