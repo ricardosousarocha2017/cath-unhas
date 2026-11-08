@@ -17,8 +17,8 @@
     <div class="kpi-card pink-border">
         <div class="kpi-icon">📱</div>
         <div class="kpi-data">
-            <h4>Sinais via Pix</h4>
-            <span class="kpi-val">{{ sinais_pix }} clientes</span>
+            <h4>Sinais Pix / Cartão</h4>
+            <span class="kpi-val">{{ sinais_pix + sinais_cartao }} clientes</span>
         </div>
     </div>
     <div class="kpi-card purple-border">
@@ -31,38 +31,44 @@
 </div>
 
 <div class="admin-section-box highlight-box">
-    <h3>💳 Gerenciador do Valor do Sinal & Dados de Pagamento Pix</h3>
-    <p class="form-subtext">Altere o valor da taxa de sinal de reserva cobrada dos clientes e configure a chave e QR Code do Pix.</p>
+    <h3>💳 Gerenciador do Valor do Sinal, Pix & Link de Crédito/Débito</h3>
+    <p class="form-subtext">Configure o valor do sinal, os dados Pix e o link de pagamento por cartão (Mercado Pago, Stripe, PagSeguro, etc.) disponibilizado às clientes.</p>
 
-    <form action="{{ url_for('atualizar_sinal_pix') }}" method="POST" enctype="multipart/form-data" class="form-flex-column">
+    <form action="{{ url_for('admin_atualizar_sinal_pix') }}" method="POST" enctype="multipart/form-data" class="form-flex-column">
         <div class="form-row">
             <div class="form-group">
                 <label for="valor_sinal_padrao">💰 Valor do Sinal de Garantia (R$):</label>
                 <input type="number" step="0.01" id="valor_sinal_padrao" name="valor_sinal_padrao" value="{{ configs.get('valor_sinal_padrao', '30.00') }}" required>
             </div>
             <div class="form-group">
-                <label for="pix_chave">🔑 Chave Pix (Telefone/CPF/E-mail):</label>
-                <input type="text" id="pix_chave" name="pix_chave" value="{{ configs.get('pix_chave', '11963271437') }}" required>
+                <label for="link_cartao_padrao">🔗 Link de Pagamento com Cartão (Crédito/Débito):</label>
+                <input type="url" id="link_cartao_padrao" name="link_cartao_padrao" value="{{ configs.get('link_cartao_padrao', 'https://pay.mercadopago.com.br/') }}" required>
             </div>
         </div>
 
         <div class="form-row">
             <div class="form-group">
-                <label for="pix_titular">👤 Nome do Titular da Conta:</label>
-                <input type="text" id="pix_titular" name="pix_titular" value="{{ configs.get('pix_titular', 'Cathelin Eloim') }}" required>
+                <label for="pix_chave">🔑 Chave Pix:</label>
+                <input type="text" id="pix_chave" name="pix_chave" value="{{ configs.get('pix_chave', '11963271437') }}" required>
             </div>
             <div class="form-group">
-                <label for="pix_banco">🏦 Banco / Instituição:</label>
-                <input type="text" id="pix_banco" name="pix_banco" value="{{ configs.get('pix_banco', 'Nubank') }}" required>
+                <label for="pix_titular">👤 Titular da Conta Pix:</label>
+                <input type="text" id="pix_titular" name="pix_titular" value="{{ configs.get('pix_titular', 'Cathelin Eloim') }}" required>
             </div>
         </div>
 
-        <div class="form-group">
-            <label for="qr_code_file">📷 Enviar Nova Imagem do QR Code Pix (opcional):</label>
-            <input type="file" id="qr_code_file" name="qr_code_file" accept="image/*" class="file-input-styled">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="pix_banco">🏦 Banco:</label>
+                <input type="text" id="pix_banco" name="pix_banco" value="{{ configs.get('pix_banco', 'Nubank') }}" required>
+            </div>
+            <div class="form-group">
+                <label for="qr_code_file">📷 Enviar Novo QR Code Pix (opcional):</label>
+                <input type="file" id="qr_code_file" name="qr_code_file" accept="image/*" class="file-input-styled">
+            </div>
         </div>
 
-        <button type="submit" class="btn-pink-action btn-sm auto-width">💾 Salvar Valor do Sinal e Dados Pix</button>
+        <button type="submit" class="btn-pink-action btn-sm auto-width">💾 Salvar Configurações de Pagamento</button>
     </form>
 </div>
 
@@ -124,7 +130,7 @@
 </div>
 
 <div class="admin-section-box">
-    <h3>📋 Gestão de Agendamentos & Controle do Sinal</h3>
+    <h3>📋 Gestão de Agendamentos, Comprovantes & Sinal</h3>
     {% if agendamentos %}
     <div class="table-container">
         <table class="custom-table">
@@ -137,6 +143,7 @@
                     <th>Valor Total</th>
                     <th>Forma de Pagamento</th>
                     <th>Sinal & Status</th>
+                    <th>Comprovante</th>
                     <th>Data / Hora</th>
                     <th>Ações</th>
                 </tr>
@@ -152,6 +159,8 @@
                     <td>
                         {% if 'Pix' in (a['forma_pagamento'] or '') %}
                             <span class="badge-pix">📱 Pix (QR Code)</span>
+                        {% elif 'Cartão' in (a['forma_pagamento'] or '') or 'Crédito' in (a['forma_pagamento'] or '') %}
+                            <span class="badge-card">💳 Cartão (Link)</span>
                         {% else %}
                             <span class="badge-studio">🏬 No Studio</span>
                         {% endif %}
@@ -160,12 +169,14 @@
                         <span class="badge-sinal">R$ {{ "%.2f"|format(a['valor_sinal'] or 30.0) }}</span><br>
                         <form action="{{ url_for('alterar_status_sinal', agendamento_id=a['id']) }}" method="POST" class="margin-top-xs">
                             <select name="novo_status_sinal" onchange="this.form.submit()" class="select-status-sm">
-                                <option value="Pix Confirmado 🟢" {% if a['status_sinal'] == 'Pix Confirmado 🟢' %}selected{% endif %}>🟢 Pix Confirmado</option>
-                                <option value="Pix Enviado (A Confirmar)" {% if a['status_sinal'] == 'Pix Enviado (A Confirmar)' %}selected{% endif %}>🟡 Pix Enviado</option>
-                                <option value="Pagar Sinal no Studio 🏬" {% if a['status_sinal'] == 'Pagar Sinal no Studio 🏬' or a['status_sinal'] == 'Pagar Sinal no Studio' %}selected{% endif %}>🏬 Sinal no Studio</option>
-                                <option value="Sinal Pendente 🔴" {% if a['status_sinal'] == 'Sinal Pendente 🔴' or a['status_sinal'] == 'Pendente' %}selected{% endif %}>🔴 Sinal Pendente</option>
+                                <option value="Sinal Confirmado 🟢" {% if 'Confirmado' in a['status_sinal'] %}selected{% endif %}>🟢 Sinal Confirmado</option>
+                                <option value="Aguardando Comprovante 🟡" {% if 'Aguardando' in a['status_sinal'] or 'Enviado' in a['status_sinal'] or 'Pendente' in a['status_sinal'] %}selected{% endif %}>🟡 Aguardando Sinal</option>
+                                <option value="Pagar no Studio 🏬" {% if 'Studio' in a['status_sinal'] %}selected{% endif %}>🏬 Pagar no Studio</option>
                             </select>
                         </form>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('comprovante', agendamento_id=a['id']) }}" target="_blank" class="btn-dark btn-sm">📄 Ver</a>
                     </td>
                     <td><strong>{{ a['data'] }}</strong><br><small>{{ a['hora'] }}</small></td>
                     <td>

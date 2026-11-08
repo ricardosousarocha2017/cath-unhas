@@ -3,7 +3,7 @@
 {% block content %}
 <div class="glass-form-container">
     <h2>🗓️ Agendar Atendimento com Cathelin Eloim</h2>
-    <p class="form-subtext">Selecione uma data no calendário, escolha o horário e a forma de pagamento.</p>
+    <p class="form-subtext">Selecione uma data no calendário, escolha o horário e a forma de pagamento do sinal.</p>
 
     <!-- Legenda Informativa do Sinal -->
     <div class="sinal-info-banner">
@@ -53,36 +53,40 @@
             </div>
         </div>
 
-        <!-- Seleção da Forma de Pagamento do Sinal / Atendimento -->
+        <!-- Forma de Pagamento do Sinal -->
         <div class="form-group margin-top-sm">
-            <label for="forma_pagamento">💳 Forma de Pagamento:</label>
-            <select id="forma_pagamento" name="forma_pagamento" required onchange="togglePixSection(this.value)">
-                <option value="Pix (QR Code / Copia e Cola)" selected>📱 Pix — Sinal via QR Code / Chave Pix</option>
-                <option value="Cartão de Crédito / Débito no Studio">💳 Cartão de Crédito / Débito (no Studio)</option>
-                <option value="Dinheiro no Studio">💵 Dinheiro (no Studio)</option>
+            <label for="forma_pagamento">💳 Forma de Pagamento do Sinal:</label>
+            <select id="forma_pagamento" name="forma_pagamento" required onchange="togglePaymentSection(this.value)">
+                <option value="Pix (QR Code / Copia e Cola)" selected>📱 Pix (QR Code / Copia e Cola)</option>
+                <option value="Cartão de Crédito / Débito (Link Online)">💳 Cartão de Crédito / Débito (Link Online)</option>
+                <option value="Pagar Sinal no Studio">🏬 Pagar Sinal no Studio</option>
             </select>
         </div>
 
-        <!-- Seção Dinâmica com QR Code e Chave Pix -->
-        <div id="pixPaymentBox" class="pix-payment-card">
+        <!-- Seção Pix -->
+        <div id="pixPaymentBox" class="payment-toggle-card">
             <h4>📱 Pagamento do Sinal via Pix — R$ {{ "%.2f"|format(valor_sinal_padrao) }}</h4>
-            <p>Escaneie o QR Code abaixo ou copie a chave Pix para realizar o pagamento do sinal:</p>
-            
+            <p>Escaneie o QR Code abaixo ou copie a chave Pix:</p>
             <div class="qr-code-wrapper">
-                <img src="{{ url_for('static', filename='images/' + configs.get('qr_code_image', 'qrcode_pix.png')) }}" alt="QR Code Pix Cathelin Eloim" class="qr-code-img">
+                <img src="{{ url_for('static', filename='images/' + configs.get('qr_code_image', 'qrcode_pix.png')) }}" alt="QR Code Pix" class="qr-code-img">
             </div>
-
             <div class="pix-key-box">
-                <span>Chave Pix (Telefone): <strong>{{ configs.get('pix_chave', '11963271437') }}</strong></span>
-                <button type="button" class="btn-copy-pix" onclick="copiarPix('{{ configs.get('pix_chave', '11963271437') }}')">📋 Copiar Chave</button>
+                <span>Chave Pix: <strong>{{ configs.get('pix_chave', '11963271437') }}</strong></span>
+                <button type="button" class="btn-copy-pix" onclick="copiarPix('{{ configs.get('pix_chave', '11963271437') }}')">📋 Copiar</button>
             </div>
-            <div class="pix-meta-info">
-                <span>Titular: <strong>{{ configs.get('pix_titular', 'Cathelin Eloim') }}</strong></span> | 
-                <span>Banco: <strong>{{ configs.get('pix_banco', 'Nubank') }}</strong></span>
+            <div class="pix-meta-info">Titular: <strong>{{ configs.get('pix_titular', 'Cathelin Eloim') }}</strong> | Banco: <strong>{{ configs.get('pix_banco', 'Nubank') }}</strong></div>
+        </div>
+
+        <!-- Seção Link de Cartão -->
+        <div id="cardPaymentBox" class="payment-toggle-card" style="display: none;">
+            <h4>💳 Pagamento via Link de Cartão (Crédito/Débito)</h4>
+            <p>Clique no botão abaixo para pagar o sinal de <strong>R$ {{ "%.2f"|format(valor_sinal_padrao) }}</strong> com segurança através do link configurado pelo Studio:</p>
+            <div class="margin-top-sm">
+                <a href="{{ link_cartao_padrao }}" target="_blank" class="btn-card-link">🔗 Acessar Link de Pagamento do Sinal</a>
             </div>
         </div>
 
-        <button type="submit" class="btn-pink-action full-width margin-top-md" id="btnSubmit">Confirmar Agendamento</button>
+        <button type="submit" class="btn-pink-action full-width margin-top-md" id="btnSubmit">Confirmar Agendamento e Emitir Comprovante</button>
     </form>
 </div>
 
@@ -111,12 +115,17 @@ function carregarHorariosOcupados(dataSelecionada) {
         });
 }
 
-function togglePixSection(val) {
+function togglePaymentSection(val) {
     const pixBox = document.getElementById('pixPaymentBox');
+    const cardBox = document.getElementById('cardPaymentBox');
+    
+    pixBox.style.display = 'none';
+    cardBox.style.display = 'none';
+
     if (val.includes('Pix')) {
         pixBox.style.display = 'block';
-    } else {
-        pixBox.style.display = 'none';
+    } else if (val.includes('Cartão') || val.includes('Crédito')) {
+        cardBox.style.display = 'block';
     }
 }
 

@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v19_sinal_status')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v20_link_comprovantes')
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -40,25 +40,25 @@ def init_db():
             data TEXT NOT NULL,
             hora TEXT NOT NULL,
             forma_pagamento TEXT DEFAULT 'Pix (QR Code / Copia e Cola)',
+            link_pagamento TEXT DEFAULT '',
             valor_sinal REAL DEFAULT 30.0,
             status_sinal TEXT DEFAULT 'Pendente',
             status TEXT DEFAULT 'Confirmado'
         )
     ''')
 
-    # Garantir a criação/migração de colunas para bancos pré-existentes
-    try:
-        cursor.execute("ALTER TABLE agendamentos ADD COLUMN forma_pagamento TEXT DEFAULT 'Pix (QR Code / Copia e Cola)'")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE agendamentos ADD COLUMN valor_sinal REAL DEFAULT 30.0")
-    except sqlite3.OperationalError:
-        pass
-    try:
-        cursor.execute("ALTER TABLE agendamentos ADD COLUMN status_sinal TEXT DEFAULT 'Pendente'")
-    except sqlite3.OperationalError:
-        pass
+    # Garantir migração de colunas para bancos existentes
+    colunas_novas = [
+        ("forma_pagamento", "TEXT DEFAULT 'Pix (QR Code / Copia e Cola)'"),
+        ("link_pagamento", "TEXT DEFAULT ''"),
+        ("valor_sinal", "REAL DEFAULT 30.0"),
+        ("status_sinal", "TEXT DEFAULT 'Pendente'")
+    ]
+    for col, def_val in colunas_novas:
+        try:
+            cursor.execute(f"ALTER TABLE agendamentos ADD COLUMN {col} {def_val}")
+        except sqlite3.OperationalError:
+            pass
     
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS servicos (
@@ -111,6 +111,7 @@ def init_db():
         ('pix_titular', 'Cathelin Eloim'),
         ('pix_banco', 'Nubank'),
         ('valor_sinal_padrao', '30.00'),
+        ('link_cartao_padrao', 'https://pay.mercadopago.com.br/checkout-exemplo-sinal'),
         ('qr_code_image', 'qrcode_pix.png')
     ]
     for c_chave, c_val in configs_iniciais:
@@ -150,7 +151,7 @@ def init_db():
 
 init_db()
 
-def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora, forma_pagamento, valor_sinal, status_sinal):
+def disparar_comprovantes_e_notificacoes(agendamento_id, nome, telefone, servico, preco, data, hora, forma_pagamento, valor_sinal, status_sinal, link_pagamento):
     conn = get_db_connection()
     configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
     conn.close()
@@ -159,14 +160,16 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora, forma_pa
     green_id = configs.get('green_instance_id', '').strip()
     green_token = configs.get('green_api_token', '').strip()
 
-    msg_texto = (
-        f"💅 *NOVO AGENDAMENTO - Cathelin Eloim | Nail Designer*\n\n"
+    # Comprovante detalhado para o Administrador
+    msg_admin = (
+        f"🧾 *COMPROVANTE DE AGENDAMENTO (ADMIN)*\n"
+        f"📋 *ID da Reserva:* #{agendamento_id}\n"
         f"👤 *Cliente:* {nome}\n"
         f"📞 *Contato:* {telefone}\n"
         f"✨ *Procedimento:* {servico}\n"
         f"💰 *Valor Total:* R$ {preco:.2f}\n"
-        f"💳 *Sinal:* R$ {valor_sinal:.2f} ({status_sinal})\n"
-        f"💵 *Opção de Pagamento:* {forma_pagamento}\n"
+        f"💳 *Sinal de Garantia:* R$ {valor_sinal:.2f} ({status_sinal})\n"
+        f"💵 *Forma de Pagamento:* {forma_pagamento}\n"
         f"📅 *Data:* {data}\n"
         f"⏰ *Horário:* {hora}"
     )
@@ -174,11 +177,11 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora, forma_pa
     if green_id and green_token and target_wa:
         try:
             url_green = f"https://7107.api.greenapi.com/waInstance{green_id}/sendMessage/{green_token}"
-            payload_wa = {"chatId": f"{target_wa}@c.us", "message": msg_texto}
             headers = {'Content-Type': 'application/json'}
-            requests.post(url_green, json=payload_wa, headers=headers, timeout=5)
+            # Enviar para o Administrador
+            requests.post(url_green, json={"chatId": f"{target_wa}@c.us", "message": msg_admin}, headers=headers, timeout=5)
         except Exception as e:
-            print(f"Erro WhatsApp: {e}")
+            print(f"Erro WhatsApp Admin: {e}")
 
 @app.route('/')
 def home():
@@ -196,6 +199,7 @@ def booking():
     configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
     
     valor_sinal_padrao = float(configs.get('valor_sinal_padrao', '30.00'))
+    link_cartao_padrao = configs.get('link_cartao_padrao', 'https://pay.mercadopago.com.br/checkout-exemplo')
 
     if request.method == 'POST':
         nome = request.form.get('nome')
@@ -205,9 +209,10 @@ def booking():
         hora = request.form.get('hora')
         forma_pagamento = request.form.get('forma_pagamento', 'Pix (QR Code / Copia e Cola)')
 
-        # Identificação inicial do status do sinal com base na forma escolhida
         if 'Pix' in forma_pagamento:
             status_sinal = 'Pix Enviado (A Confirmar)'
+        elif 'Crédito' in forma_pagamento or 'Débito' in forma_pagamento:
+            status_sinal = 'Link Cartão Emitido (Pendente)'
         else:
             status_sinal = 'Pagar Sinal no Studio'
 
@@ -226,24 +231,29 @@ def booking():
         servico = conn.execute('SELECT * FROM servicos WHERE id = ?', (servico_id,)).fetchone()
         
         if servico:
-            conn.execute(
+            cursor = conn.cursor()
+            cursor.execute(
                 '''INSERT INTO agendamentos 
-                   (nome, telefone, servico, preco, data, hora, forma_pagamento, valor_sinal, status_sinal) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                (nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, valor_sinal_padrao, status_sinal)
+                   (nome, telefone, servico, preco, data, hora, forma_pagamento, link_pagamento, valor_sinal, status_sinal) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                (nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, link_cartao_padrao, valor_sinal_padrao, status_sinal)
             )
+            novo_id = cursor.lastrowid
             conn.commit()
             conn.close()
 
-            disparar_todos_os_meios(nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, valor_sinal_padrao, status_sinal)
+            disparar_comprovantes_e_notificacoes(novo_id, nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, valor_sinal_padrao, status_sinal, link_cartao_padrao)
 
             return render_template('booking_sucesso.html', 
+                                   agendamento_id=novo_id,
                                    nome=nome, 
+                                   telefone=telefone,
                                    servico=servico['nome'], 
                                    data=data, 
                                    hora=hora, 
                                    preco=servico['preco'],
                                    forma_pagamento=forma_pagamento,
+                                   link_pagamento=link_cartao_padrao,
                                    valor_sinal=valor_sinal_padrao,
                                    status_sinal=status_sinal,
                                    configs=configs)
@@ -254,7 +264,21 @@ def booking():
                            datas=datas_disponiveis, 
                            horarios=horarios_ativos,
                            configs=configs,
-                           valor_sinal_padrao=valor_sinal_padrao)
+                           valor_sinal_padrao=valor_sinal_padrao,
+                           link_cartao_padrao=link_cartao_padrao)
+
+@app.route('/comprovante/<int:agendamento_id>')
+def comprovante(agendamento_id):
+    conn = get_db_connection()
+    agendamento = conn.execute('SELECT * FROM agendamentos WHERE id = ?', (agendamento_id,)).fetchone()
+    configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
+    conn.close()
+
+    if not agendamento:
+        flash('Comprovante não encontrado.', 'danger')
+        return redirect(url_for('home'))
+
+    return render_template('comprovante.html', agendamento=agendamento, configs=configs)
 
 @app.route('/api/horarios-ocupados/<data>')
 def horarios_ocupados(data):
@@ -301,8 +325,8 @@ def admin():
     total_atendimentos = len(agendamentos)
     ticket_medio = (total_faturamento / total_atendimentos) if total_atendimentos > 0 else 0.0
 
-    # Métricas de Controle de Sinal
     sinais_pix = len([a for a in agendamentos if 'Pix' in (a['forma_pagamento'] or '')])
+    sinais_cartao = len([a for a in agendamentos if 'Crédito' in (a['forma_pagamento'] or '') or 'Débito' in (a['forma_pagamento'] or '')])
     sinais_studio = len([a for a in agendamentos if 'Studio' in (a['forma_pagamento'] or '')])
 
     relatorio_servicos = conn.execute('''
@@ -332,6 +356,7 @@ def admin():
                            total_atendimentos=total_atendimentos,
                            ticket_medio=ticket_medio,
                            sinais_pix=sinais_pix,
+                           sinais_cartao=sinais_cartao,
                            sinais_studio=sinais_studio,
                            relatorio_servicos=relatorio_servicos,
                            imagens_disponiveis=imagens_disponiveis)
@@ -360,6 +385,7 @@ def atualizar_sinal_pix():
     pix_chave = request.form.get('pix_chave', '').strip()
     pix_titular = request.form.get('pix_titular', '').strip()
     pix_banco = request.form.get('pix_banco', '').strip()
+    link_cartao = request.form.get('link_cartao_padrao', '').strip()
 
     conn = get_db_connection()
     
@@ -371,6 +397,8 @@ def atualizar_sinal_pix():
         conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_titular', ?)", (pix_titular,))
     if pix_banco:
         conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_banco', ?)", (pix_banco,))
+    if link_cartao:
+        conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('link_cartao_padrao', ?)", (link_cartao,))
 
     if 'qr_code_file' in request.files and request.files['qr_code_file'].filename != '':
         file = request.files['qr_code_file']
@@ -382,7 +410,7 @@ def atualizar_sinal_pix():
     conn.commit()
     conn.close()
 
-    flash('Valor do Sinal e Dados do Pix atualizados com sucesso!', 'success')
+    flash('Configurações de Sinal e Pagamento atualizadas com sucesso!', 'success')
     return redirect(url_for('admin'))
 
 @app.route('/admin/adicionar-data', methods=['POST'])

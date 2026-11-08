@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Comprovante de Reserva #{{ agendamento['id'] }} — Cathelin Eloim</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Plus+Jakarta+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { background: #fff4f8; font-family: 'Plus Jakarta Sans', sans-serif; color: #5c203b; display: flex; justify-content: center; padding: 2rem; }
+        .comprovante-box { background: white; width: 100%; max-width: 600px; padding: 3rem; border-radius: 20px; border: 2px solid #f8bbd0; box-shadow: 0 10px 30px rgba(214, 51, 132, 0.1); }
+        h1 { font-family: 'Playfair Display', serif; color: #702646; font-size: 1.8rem; text-align: center; margin-bottom: 0.3rem; }
+        .sub-title { text-align: center; font-size: 0.9rem; color: #aa396e; text-transform: uppercase; margin-bottom: 2rem; }
+        .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #fce4ec; font-size: 0.95rem; }
+        .info-row span:first-child { color: #8c2759; font-weight: 600; }
+        .info-row span:last-child { color: #4a2b38; font-weight: 700; text-align: right; }
+        .footer-comprovante { text-align: center; margin-top: 2.5rem; font-size: 0.85rem; color: #8c2759; border-top: 1px solid #f8bbd0; padding-top: 1rem; }
+        .btn-print { display: block; width: 100%; background: linear-gradient(135deg, #d63384, #aa396e); color: white; border: none; padding: 12px; border-radius: 20px; font-weight: 700; text-align: center; cursor: pointer; text-decoration: none; margin-top: 1.5rem; }
+        @media print { .btn-print { display: none; } body { background: white; } .comprovante-box { border: none; box-shadow: none; } }
+    </style>
+</head>
+<body>
+    <div class="comprovante-box">
+        <h1>Cathelin Eloim | Studio</h1>
+        <div class="sub-title">Comprovante Oficial de Reserva — #{{ agendamento['id'] }}</div>
+
+        <div class="info-row"><span>Cliente:</span> <span>{{ agendamento['nome'] }}</span></div>
+        <div class="info-row"><span>Contato (WhatsApp):</span> <span>{{ agendamento['telefone'] }}</span></div>
+        <div class="info-row"><span>Procedimento:</span> <span>{{ agendamento['servico'] }}</span></div>
+        <div class="info-row"><span>Valor do Procedimento:</span> <span>R$ {{ "%.2f"|format(agendamento['preco']) }}</span></div>
+        <div class="info-row"><span>Sinal de Garantia:</span> <span>R$ {{ "%.2f"|format(agendamento['valor_sinal'] or 30.0) }}</span></div>
+        <div class="info-row"><span>Forma de Pagamento:</span> <span>{{ agendamento['forma_pagamento'] }}</span></div>
+        <div class="info-row"><span>Status do Sinal:</span> <span>{{ agendamento['status_sinal'] }}</span></div>
+        <div class="info-row"><span>Data Agendada:</span> <span>{{ agendamento['data'] }}</span></div>
+        <div class="info-row"><span>Horário:</span> <span>{{ agendamento['hora'] }}</span></div>
+
+        <div class="footer-comprovante">
+            <p>✨ Obrigado por escolher nossos serviços! Apresente este comprovante no Studio.</p>
+            <p>Itapecerica da Serra — SP</p>
+        </div>
+
+        <button onclick="window.print()" class="btn-print">🖨️ Imprimir / Salvar PDF</button>
+    </div>
+</body>
+</html>
