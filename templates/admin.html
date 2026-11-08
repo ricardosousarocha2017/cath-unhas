@@ -15,17 +15,17 @@
         </div>
     </div>
     <div class="kpi-card pink-border">
-        <div class="kpi-icon">📅</div>
+        <div class="kpi-icon">📱</div>
         <div class="kpi-data">
-            <h4>Total Agendamentos</h4>
-            <span class="kpi-val">{{ total_atendimentos }}</span>
+            <h4>Sinais via Pix</h4>
+            <span class="kpi-val">{{ sinais_pix }} clientes</span>
         </div>
     </div>
     <div class="kpi-card purple-border">
-        <div class="kpi-icon">📈</div>
+        <div class="kpi-icon">🏬</div>
         <div class="kpi-data">
-            <h4>Ticket Médio</h4>
-            <span class="kpi-val">R$ {{ "%.2f"|format(ticket_medio) }}</span>
+            <h4>Sinais no Studio</h4>
+            <span class="kpi-val">{{ sinais_studio }} clientes</span>
         </div>
     </div>
 </div>
@@ -124,7 +124,7 @@
 </div>
 
 <div class="admin-section-box">
-    <h3>📋 Histórico de Agendamentos e Formas de Pagamento</h3>
+    <h3>📋 Gestão de Agendamentos & Controle do Sinal</h3>
     {% if agendamentos %}
     <div class="table-container">
         <table class="custom-table">
@@ -135,11 +135,10 @@
                     <th>Contato</th>
                     <th>Serviço</th>
                     <th>Valor Total</th>
-                    <th>Sinal</th>
-                    <th>Pagamento</th>
-                    <th>Data</th>
-                    <th>Hora</th>
-                    <th>Ação</th>
+                    <th>Forma de Pagamento</th>
+                    <th>Sinal & Status</th>
+                    <th>Data / Hora</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -150,10 +149,25 @@
                     <td>{{ a['telefone'] }}</td>
                     <td><span class="badge-executive">{{ a['servico'] }}</span></td>
                     <td>R$ {{ "%.2f"|format(a['preco']) }}</td>
-                    <td><span class="badge-sinal">R$ {{ "%.2f"|format(a['valor_sinal'] or 30.0) }}</span></td>
-                    <td><small>{{ a['forma_pagamento'] or 'Pix' }}</small></td>
-                    <td><strong>{{ a['data'] }}</strong></td>
-                    <td><strong>{{ a['hora'] }}</strong></td>
+                    <td>
+                        {% if 'Pix' in (a['forma_pagamento'] or '') %}
+                            <span class="badge-pix">📱 Pix (QR Code)</span>
+                        {% else %}
+                            <span class="badge-studio">🏬 No Studio</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge-sinal">R$ {{ "%.2f"|format(a['valor_sinal'] or 30.0) }}</span><br>
+                        <form action="{{ url_for('alterar_status_sinal', agendamento_id=a['id']) }}" method="POST" class="margin-top-xs">
+                            <select name="novo_status_sinal" onchange="this.form.submit()" class="select-status-sm">
+                                <option value="Pix Confirmado 🟢" {% if a['status_sinal'] == 'Pix Confirmado 🟢' %}selected{% endif %}>🟢 Pix Confirmado</option>
+                                <option value="Pix Enviado (A Confirmar)" {% if a['status_sinal'] == 'Pix Enviado (A Confirmar)' %}selected{% endif %}>🟡 Pix Enviado</option>
+                                <option value="Pagar Sinal no Studio 🏬" {% if a['status_sinal'] == 'Pagar Sinal no Studio 🏬' or a['status_sinal'] == 'Pagar Sinal no Studio' %}selected{% endif %}>🏬 Sinal no Studio</option>
+                                <option value="Sinal Pendente 🔴" {% if a['status_sinal'] == 'Sinal Pendente 🔴' or a['status_sinal'] == 'Pendente' %}selected{% endif %}>🔴 Sinal Pendente</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td><strong>{{ a['data'] }}</strong><br><small>{{ a['hora'] }}</small></td>
                     <td>
                         <form action="{{ url_for('remover_agendamento', agendamento_id=a['id']) }}" method="POST" onsubmit="return confirm('Cancelar este agendamento?');">
                             <button type="submit" class="btn-danger btn-sm">Cancelar</button>

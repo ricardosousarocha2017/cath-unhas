@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v18_fix_deploy')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v19_sinal_status')
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -41,16 +41,22 @@ def init_db():
             hora TEXT NOT NULL,
             forma_pagamento TEXT DEFAULT 'Pix (QR Code / Copia e Cola)',
             valor_sinal REAL DEFAULT 30.0,
+            status_sinal TEXT DEFAULT 'Pendente',
             status TEXT DEFAULT 'Confirmado'
         )
     ''')
 
+    # Garantir a criação/migração de colunas para bancos pré-existentes
     try:
         cursor.execute("ALTER TABLE agendamentos ADD COLUMN forma_pagamento TEXT DEFAULT 'Pix (QR Code / Copia e Cola)'")
     except sqlite3.OperationalError:
         pass
     try:
         cursor.execute("ALTER TABLE agendamentos ADD COLUMN valor_sinal REAL DEFAULT 30.0")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        cursor.execute("ALTER TABLE agendamentos ADD COLUMN status_sinal TEXT DEFAULT 'Pendente'")
     except sqlite3.OperationalError:
         pass
     
@@ -144,7 +150,7 @@ def init_db():
 
 init_db()
 
-def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora, forma_pagamento, valor_sinal):
+def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora, forma_pagamento, valor_sinal, status_sinal):
     conn = get_db_connection()
     configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
     conn.close()
@@ -159,8 +165,8 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora, forma_pa
         f"📞 *Contato:* {telefone}\n"
         f"✨ *Procedimento:* {servico}\n"
         f"💰 *Valor Total:* R$ {preco:.2f}\n"
-        f"💳 *Sinal Solicitado:* R$ {valor_sinal:.2f}\n"
-        f"💵 *Forma de Pagamento:* {forma_pagamento}\n"
+        f"💳 *Sinal:* R$ {valor_sinal:.2f} ({status_sinal})\n"
+        f"💵 *Opção de Pagamento:* {forma_pagamento}\n"
         f"📅 *Data:* {data}\n"
         f"⏰ *Horário:* {hora}"
     )
@@ -199,6 +205,12 @@ def booking():
         hora = request.form.get('hora')
         forma_pagamento = request.form.get('forma_pagamento', 'Pix (QR Code / Copia e Cola)')
 
+        # Identificação inicial do status do sinal com base na forma escolhida
+        if 'Pix' in forma_pagamento:
+            status_sinal = 'Pix Enviado (A Confirmar)'
+        else:
+            status_sinal = 'Pagar Sinal no Studio'
+
         dt_valida = conn.execute('SELECT * FROM datas_config WHERE data = ? AND ativo = 1', (data,)).fetchone()
         if not dt_valida:
             flash('A data selecionada não está disponível. Por favor escolha uma data liberada.', 'danger')
@@ -216,14 +228,14 @@ def booking():
         if servico:
             conn.execute(
                 '''INSERT INTO agendamentos 
-                   (nome, telefone, servico, preco, data, hora, forma_pagamento, valor_sinal) 
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                (nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, valor_sinal_padrao)
+                   (nome, telefone, servico, preco, data, hora, forma_pagamento, valor_sinal, status_sinal) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                (nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, valor_sinal_padrao, status_sinal)
             )
             conn.commit()
             conn.close()
 
-            disparar_todos_os_meios(nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, valor_sinal_padrao)
+            disparar_todos_os_meios(nome, telefone, servico['nome'], servico['preco'], data, hora, forma_pagamento, valor_sinal_padrao, status_sinal)
 
             return render_template('booking_sucesso.html', 
                                    nome=nome, 
@@ -233,6 +245,7 @@ def booking():
                                    preco=servico['preco'],
                                    forma_pagamento=forma_pagamento,
                                    valor_sinal=valor_sinal_padrao,
+                                   status_sinal=status_sinal,
                                    configs=configs)
 
     conn.close()
@@ -288,6 +301,10 @@ def admin():
     total_atendimentos = len(agendamentos)
     ticket_medio = (total_faturamento / total_atendimentos) if total_atendimentos > 0 else 0.0
 
+    # Métricas de Controle de Sinal
+    sinais_pix = len([a for a in agendamentos if 'Pix' in (a['forma_pagamento'] or '')])
+    sinais_studio = len([a for a in agendamentos if 'Studio' in (a['forma_pagamento'] or '')])
+
     relatorio_servicos = conn.execute('''
         SELECT servico, COUNT(*) as qtd, SUM(preco) as total 
         FROM agendamentos 
@@ -314,8 +331,25 @@ def admin():
                            total_faturamento=total_faturamento,
                            total_atendimentos=total_atendimentos,
                            ticket_medio=ticket_medio,
+                           sinais_pix=sinais_pix,
+                           sinais_studio=sinais_studio,
                            relatorio_servicos=relatorio_servicos,
                            imagens_disponiveis=imagens_disponiveis)
+
+@app.route('/admin/alterar-status-sinal/<int:agendamento_id>', methods=['POST'])
+def alterar_status_sinal(agendamento_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    novo_status_sinal = request.form.get('novo_status_sinal')
+    if novo_status_sinal:
+        conn = get_db_connection()
+        conn.execute('UPDATE agendamentos SET status_sinal = ? WHERE id = ?', (novo_status_sinal, agendamento_id))
+        conn.commit()
+        conn.close()
+        flash(f'Status do sinal atualizado para "{novo_status_sinal}"!', 'success')
+
+    return redirect(url_for('admin'))
 
 @app.route('/admin/atualizar-sinal-pix', methods=['POST'])
 def atualizar_sinal_pix():

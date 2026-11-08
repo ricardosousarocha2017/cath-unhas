@@ -37,7 +37,7 @@ h1, h2, h3, .logo .brand-title, .profile-handle h1, .profile-name, .section-titl
 }
 
 .main-wrapper {
-    max-width: 900px;
+    max-width: 960px;
     margin: 1.5rem auto;
     padding: 0 1.5rem;
     flex: 1;
@@ -52,7 +52,6 @@ h1, h2, h3, .logo .brand-title, .profile-handle h1, .profile-name, .section-titl
 .alert-success { background: #e2f0d9; color: #2d572c; }
 .alert-danger { background: #ffe3eb; color: #9c1c4b; }
 
-/* HERO INSTAGRAM */
 .insta-profile-hero {
     background: #ffffff;
     border-radius: 20px;
@@ -148,39 +147,21 @@ h1, h2, h3, .logo .brand-title, .profile-handle h1, .profile-name, .section-titl
     font-weight: 600;
 }
 
-/* LEGENDA INFORMATIVA DO SINAL */
-.sinal-info-banner {
-    background: #fff0f6;
-    border: 1px solid #f8bbd0;
-    border-radius: 14px;
-    padding: 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.8rem;
-}
-.banner-icon { font-size: 1.8rem; }
-.banner-text { font-size: 0.9rem; color: #702646; line-height: 1.5; }
-
-/* SEÇÃO PIX & QR CODE */
-.pix-payment-card {
-    background: #fff9fc;
-    border: 1px dashed #d63384;
-    border-radius: 16px;
-    padding: 1.5rem;
-    margin-top: 1.2rem;
-    text-align: center;
-}
-.pix-payment-card h4 { color: #702646; margin-bottom: 0.5rem; }
-.qr-code-wrapper { margin: 1rem auto; width: 180px; height: 180px; background: white; padding: 10px; border-radius: 12px; border: 1px solid #f8bbd0; }
-.qr-code-img { width: 100%; height: 100%; object-fit: contain; }
-.pix-key-box { display: flex; align-items: center; justify-content: center; gap: 0.8rem; margin-top: 0.8rem; }
-.btn-copy-pix { background: #702646; color: white; border: none; padding: 6px 14px; border-radius: 15px; font-size: 0.8rem; cursor: pointer; }
-.pix-meta-info { font-size: 0.82rem; color: #8c2759; margin-top: 0.6rem; }
-
+.badge-pix { background: #e3f2fd; color: #1565c0; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
+.badge-studio { background: #f3e5f5; color: #7b1fa2; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
 .badge-sinal { background: #f8bbd0; color: #702646; padding: 4px 8px; border-radius: 12px; font-weight: 700; font-size: 0.85rem; }
 
-/* DESTAQUES & PROCEDIMENTOS */
+.select-status-sm {
+    padding: 4px 8px;
+    border-radius: 8px;
+    border: 1px solid #f4b8d3;
+    font-size: 0.78rem;
+    background-color: #fff9fc;
+    color: #702646;
+    font-weight: 600;
+    cursor: pointer;
+}
+
 .highlights-section { text-align: center; margin-bottom: 3rem; }
 .highlights-title { font-size: 1.2rem; letter-spacing: 2px; color: #702646; text-transform: uppercase; margin-bottom: 1.5rem; }
 .highlights-grid { display: flex; justify-content: center; gap: 2.5rem; }
@@ -222,5 +203,10 @@ h1, h2, h3, .logo .brand-title, .profile-handle h1, .profile-name, .section-titl
 .tag-item { display: flex; align-items: center; gap: 0.4rem; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
 .tag-active { background: #e2f0d9; color: #2d572c; }
 .tag-inactive { background: #ffe3eb; color: #9c1c4b; }
+
+.table-container { overflow-x: auto; margin-top: 1rem; }
+.custom-table { width: 100%; border-collapse: collapse; text-align: left; }
+.custom-table th { background: #fff0f6; padding: 12px 14px; font-size: 0.85rem; color: #702646; }
+.custom-table td { padding: 12px 14px; border-bottom: 1px solid #fce4ec; font-size: 0.88rem; }
 
 footer { text-align: center; padding: 2rem; background: #702646; color: #ffe6f0; font-size: 0.85rem; margin-top: 3rem; }
