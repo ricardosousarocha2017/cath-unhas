@@ -1,13 +1,12 @@
 import os
 import sqlite3
 import requests
-from datetime import datetime
 from werkzeug.utils import secure_filename
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_dates_v13')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_rosa_v10')
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -39,7 +38,7 @@ def init_db():
             preco REAL NOT NULL,
             data TEXT NOT NULL,
             hora TEXT NOT NULL,
-            status TEXT DEFAULT 'Confirmado'
+            status TEXT DEFAULT 'Pendente'
         )
     ''')
     
@@ -52,16 +51,6 @@ def init_db():
         )
     ''')
 
-    # Tabela de datas liberadas pelo Administrador
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS datas_config (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            data TEXT UNIQUE NOT NULL,
-            ativo INTEGER DEFAULT 1
-        )
-    ''')
-
-    # Tabela de horários liberados pelo Administrador
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS horarios_config (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -118,15 +107,6 @@ def init_db():
     for h in horarios_padrao:
         cursor.execute('INSERT OR IGNORE INTO horarios_config (hora, ativo) VALUES (?, 1)', (h,))
 
-    # Liberar por padrão datas dos próximos dias
-    hoje = datetime.now()
-    cursor.execute('SELECT COUNT(*) FROM datas_config')
-    if cursor.fetchone()[0] == 0:
-        from datetime import timedelta
-        for i in range(14):
-            dt_str = (hoje + timedelta(days=i)).strftime('%Y-%m-%d')
-            cursor.execute('INSERT OR IGNORE INTO datas_config (data, ativo) VALUES (?, 1)', (dt_str,))
-
     cursor.execute('SELECT COUNT(*) FROM usuarios')
     if cursor.fetchone()[0] == 0:
         senha_hash = generate_password_hash('1234')
@@ -138,13 +118,26 @@ def init_db():
 init_db()
 
 def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
+    """Dispara notificações para o número 11963271437."""
     conn = get_db_connection()
     configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
     conn.close()
 
     target_wa = configs.get('whatsapp_admin', '5511963271437').strip()
+    target_sms = configs.get('sms_admin', '11963271437').strip()
+    
     green_id = configs.get('green_instance_id', '').strip()
     green_token = configs.get('green_api_token', '').strip()
+    
+    tg_token = configs.get('telegram_bot_token', '').strip()
+    tg_chat = configs.get('telegram_chat_id', '').strip()
+    
+    tw_sid = configs.get('twilio_account_sid', '').strip()
+    tw_token = configs.get('twilio_auth_token', '').strip()
+    tw_from = configs.get('twilio_phone_number', '').strip()
+    
+    email_admin = configs.get('email_admin', '').strip()
+    resend_key = configs.get('resend_api_key', '').strip()
 
     msg_texto = (
         f"💅 *NOVO AGENDAMENTO - Cathelin Eloim | Nail Designer*\n\n"
@@ -165,6 +158,53 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
         except Exception as e:
             print(f"Erro WhatsApp Green-API: {e}")
 
+    if tw_sid and tw_token and tw_from and target_sms:
+        try:
+            sms_body = f"Cath Unhas: Novo Agendamento - {nome} ({servico}) em {data} as {hora}. R$ {preco:.2f}"
+            url_twilio = f"https://api.twilio.com/2010-04-01/Accounts/{tw_sid}/Messages.json"
+            requests.post(
+                url_twilio,
+                data={'From': tw_from, 'To': f"+55{target_sms}", 'Body': sms_body},
+                auth=(tw_sid, tw_token),
+                timeout=4
+            )
+        except Exception as e:
+            print(f"Erro SMS Twilio: {e}")
+
+    if tg_token and tg_chat:
+        try:
+            url_tg = f"https://api.telegram.org/bot{tg_token}/sendMessage"
+            payload_tg = {"chat_id": tg_chat, "text": msg_texto, "parse_mode": "Markdown"}
+            requests.post(url_tg, json=payload_tg, timeout=4)
+        except Exception as e:
+            print(f"Erro Telegram: {e}")
+
+    if resend_key and email_admin:
+        try:
+            url_resend = "https://api.resend.com/emails"
+            email_payload = {
+                "from": "Cath Unhas <onboarding@resend.dev>",
+                "to": [email_admin],
+                "subject": f"💅 NOVO AGENDAMENTO: {nome} - {servico}",
+                "html": f"""
+                <div style="font-family: Arial, sans-serif; padding: 20px; background-color: #fdf0f5; border-radius: 12px;">
+                    <h2 style="color: #d63384;">💅 Novo Agendamento Confirmado!</h2>
+                    <ul style="line-height: 1.8;">
+                        <li><strong>Cliente:</strong> {nome}</li>
+                        <li><strong>Contato:</strong> {telefone}</li>
+                        <li><strong>Serviço:</strong> {servico}</li>
+                        <li><strong>Valor:</strong> R$ {preco:.2f}</li>
+                        <li><strong>Data:</strong> {data}</li>
+                        <li><strong>Horário:</strong> {hora}</li>
+                    </ul>
+                </div>
+                """
+            }
+            headers_resend = {"Authorization": f"Bearer {resend_key}", "Content-Type": "application/json"}
+            requests.post(url_resend, json=email_payload, headers=headers_resend, timeout=5)
+        except Exception as e:
+            print(f"Erro E-mail Resend: {e}")
+
 @app.route('/')
 def home():
     conn = get_db_connection()
@@ -176,8 +216,7 @@ def home():
 def booking():
     conn = get_db_connection()
     servicos = conn.execute('SELECT * FROM servicos').fetchall()
-    datas_disponiveis = conn.execute('SELECT * FROM datas_config WHERE ativo = 1 ORDER BY data ASC').fetchall()
-    horarios_ativos = conn.execute('SELECT * FROM horarios_config WHERE ativo = 1 ORDER BY hora ASC').fetchall()
+    horarios = conn.execute('SELECT * FROM horarios_config WHERE ativo = 1 ORDER BY hora ASC').fetchall()
     
     if request.method == 'POST':
         nome = request.form.get('nome')
@@ -185,20 +224,6 @@ def booking():
         servico_id = request.form.get('servico_id')
         data = request.form.get('data')
         hora = request.form.get('hora')
-
-        # Validação se a data está liberada pelo Admin
-        dt_valida = conn.execute('SELECT * FROM datas_config WHERE data = ? AND ativo = 1', (data,)).fetchone()
-        if not dt_valida:
-            flash('A data selecionada não está disponível para agendamento. Escolha uma data liberada.', 'danger')
-            conn.close()
-            return redirect(url_for('booking'))
-
-        # Validação se o horário está ocupado
-        ocupado = conn.execute('SELECT * FROM agendamentos WHERE data = ? AND hora = ?', (data, hora)).fetchone()
-        if ocupado:
-            flash(f'O horário {hora} no dia {data} já foi reservado. Escolha outro horário.', 'danger')
-            conn.close()
-            return redirect(url_for('booking'))
 
         servico = conn.execute('SELECT * FROM servicos WHERE id = ?', (servico_id,)).fetchone()
         
@@ -215,16 +240,7 @@ def booking():
             return render_template('booking_sucesso.html', nome=nome, servico=servico['nome'], data=data, hora=hora, preco=servico['preco'])
 
     conn.close()
-    return render_template('booking.html', servicos=servicos, datas=datas_disponiveis, horarios=horarios_ativos)
-
-# API REST para retornar horários ocupados por data
-@app.route('/api/horarios-ocupados/<data>')
-def horarios_ocupados(data):
-    conn = get_db_connection()
-    agendamentos = conn.execute('SELECT hora FROM agendamentos WHERE data = ?', (data,)).fetchall()
-    conn.close()
-    ocupados = [row['hora'] for row in agendamentos]
-    return jsonify(ocupados)
+    return render_template('booking.html', servicos=servicos, horarios=horarios)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -253,10 +269,9 @@ def admin():
         return redirect(url_for('login'))
 
     conn = get_db_connection()
-    agendamentos = conn.execute('SELECT * FROM agendamentos ORDER BY data ASC, hora ASC').fetchall()
+    agendamentos = conn.execute('SELECT * FROM agendamentos ORDER BY id DESC').fetchall()
     servicos = conn.execute('SELECT * FROM servicos').fetchall()
-    datas_config = conn.execute('SELECT * FROM datas_config ORDER BY data ASC').fetchall()
-    horarios_config = conn.execute('SELECT * FROM horarios_config ORDER BY hora ASC').fetchall()
+    horarios = conn.execute('SELECT * FROM horarios_config ORDER BY hora ASC').fetchall()
     configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
 
     total_faturamento = conn.execute("SELECT SUM(preco) FROM agendamentos").fetchone()[0] or 0.0
@@ -282,8 +297,7 @@ def admin():
     return render_template('admin.html', 
                            agendamentos=agendamentos, 
                            servicos=servicos, 
-                           datas_config=datas_config,
-                           horarios=horarios_config, 
+                           horarios=horarios, 
                            configs=configs,
                            username=session.get('username'),
                            total_faturamento=total_faturamento,
@@ -291,110 +305,6 @@ def admin():
                            ticket_medio=ticket_medio,
                            relatorio_servicos=relatorio_servicos,
                            imagens_disponiveis=imagens_disponiveis)
-
-@app.route('/admin/adicionar-data', methods=['POST'])
-def adicionar_data():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    nova_data = request.form.get('nova_data', '').strip()
-    if nova_data:
-        conn = get_db_connection()
-        try:
-            conn.execute('INSERT INTO datas_config (data, ativo) VALUES (?, 1)', (nova_data,))
-            conn.commit()
-            flash(f'Data {nova_data} liberada para atendimento!', 'success')
-        except sqlite3.IntegrityError:
-            flash('Esta data já está na lista.', 'danger')
-        finally:
-            conn.close()
-
-    return redirect(url_for('admin'))
-
-@app.route('/admin/toggle-data/<int:data_id>', methods=['POST'])
-def toggle_data(data_id):
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    d = conn.execute('SELECT ativo FROM datas_config WHERE id = ?', (data_id,)).fetchone()
-    if d:
-        novo_status = 0 if d['ativo'] == 1 else 1
-        conn.execute('UPDATE datas_config SET ativo = ? WHERE id = ?', (novo_status, data_id))
-        conn.commit()
-        flash('Status da data alterado!', 'success')
-    conn.close()
-    return redirect(url_for('admin'))
-
-@app.route('/admin/remover-data/<int:data_id>', methods=['POST'])
-def remover_data(data_id):
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    conn.execute('DELETE FROM datas_config WHERE id = ?', (data_id,))
-    conn.commit()
-    conn.close()
-    flash('Data removida!', 'success')
-    return redirect(url_for('admin'))
-
-@app.route('/admin/adicionar-horario', methods=['POST'])
-def adicionar_horario():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    novo_horario = request.form.get('novo_horario', '').strip()
-    if novo_horario:
-        conn = get_db_connection()
-        try:
-            conn.execute('INSERT INTO horarios_config (hora, ativo) VALUES (?, 1)', (novo_horario,))
-            conn.commit()
-            flash('Horário adicionado com sucesso!', 'success')
-        except sqlite3.IntegrityError:
-            flash('Este horário já existe.', 'danger')
-        finally:
-            conn.close()
-
-    return redirect(url_for('admin'))
-
-@app.route('/admin/toggle-horario/<int:horario_id>', methods=['POST'])
-def toggle_horario(horario_id):
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    h = conn.execute('SELECT ativo FROM horarios_config WHERE id = ?', (horario_id,)).fetchone()
-    if h:
-        novo_status = 0 if h['ativo'] == 1 else 1
-        conn.execute('UPDATE horarios_config SET ativo = ? WHERE id = ?', (novo_status, horario_id))
-        conn.commit()
-        flash('Status do horário alterado!', 'success')
-    conn.close()
-    return redirect(url_for('admin'))
-
-@app.route('/admin/remover-horario/<int:horario_id>', methods=['POST'])
-def remover_horario(horario_id):
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    conn.execute('DELETE FROM horarios_config WHERE id = ?', (horario_id,))
-    conn.commit()
-    conn.close()
-    flash('Horário removido!', 'success')
-    return redirect(url_for('admin'))
-
-@app.route('/admin/remover-agendamento/<int:agendamento_id>', methods=['POST'])
-def remover_agendamento(agendamento_id):
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-
-    conn = get_db_connection()
-    conn.execute('DELETE FROM agendamentos WHERE id = ?', (agendamento_id,))
-    conn.commit()
-    conn.close()
-    flash('Agendamento cancelado!', 'success')
-    return redirect(url_for('admin'))
 
 @app.route('/admin/atualizar-config-api', methods=['POST'])
 def atualizar_config_api():
@@ -428,7 +338,7 @@ def alterar_senha():
         return redirect(url_for('admin'))
 
     if nova_senha != confirmar_senha:
-        flash('As senhas digitadas não coincidem.', 'danger')
+        flash('As senhas digitadas não coincidem. Tente novamente.', 'danger')
         return redirect(url_for('admin'))
 
     senha_hash = generate_password_hash(nova_senha)
@@ -438,7 +348,7 @@ def alterar_senha():
                      (novo_usuario, senha_hash, session['user_id']))
         conn.commit()
         session['username'] = novo_usuario
-        flash('Login e Senha alterados com sucesso!', 'success')
+        flash('Credenciais do administrador alteradas com sucesso!', 'success')
     except sqlite3.IntegrityError:
         flash('Nome de usuário indisponível.', 'danger')
     finally:
@@ -453,6 +363,7 @@ def adicionar_servico():
 
     nome_servico = request.form.get('nome_servico').strip()
     preco_servico = request.form.get('preco_servico')
+    
     imagem_servico = 'banho_gel.jpeg'
     
     if 'foto_file' in request.files and request.files['foto_file'].filename != '':
@@ -527,6 +438,41 @@ def remover_servico(servico_id):
     conn.commit()
     conn.close()
     flash('Serviço excluído!', 'success')
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/toggle-horario', methods=['POST'])
+def toggle_horario():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    horario_id = request.form.get('horario_id')
+    conn = get_db_connection()
+    h = conn.execute('SELECT ativo FROM horarios_config WHERE id = ?', (horario_id,)).fetchone()
+    if h:
+        novo_status = 0 if h['ativo'] == 1 else 1
+        conn.execute('UPDATE horarios_config SET ativo = ? WHERE id = ?', (novo_status, horario_id))
+        conn.commit()
+        flash('Status do horário alterado!', 'success')
+    conn.close()
+    return redirect(url_for('admin'))
+
+@app.route('/admin/adicionar-horario', methods=['POST'])
+def adicionar_horario():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    novo_horario = request.form.get('novo_horario').strip()
+    if novo_horario:
+        conn = get_db_connection()
+        try:
+            conn.execute('INSERT INTO horarios_config (hora, ativo) VALUES (?, 1)', (novo_horario,))
+            conn.commit()
+            flash('Horário adicionado com sucesso!', 'success')
+        except sqlite3.IntegrityError:
+            flash('Este horário já existe na lista.', 'danger')
+        finally:
+            conn.close()
 
     return redirect(url_for('admin'))
 

@@ -1,4 +1,4 @@
-# Cathelin Eloim | Nail Designer - Gerenciamento Total de Datas e Horários pelo Administrador
+# Cathelin Eloim | Nail Designer - Redesign Rosa & Remoção da Galeria
 
-- O Administrador controla 100% das datas e horários liberados para agendamento.
-- Validação automática para impedir duplo agendamento no mesmo horário.
+- Removida a Galeria de Trabalhos da página inicial.
+- Aparente visual totalmente renovado em tons elegânticos de Rosa (Chic Pink, Soft Blush & Rose Gold).

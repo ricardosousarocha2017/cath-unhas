@@ -3,9 +3,9 @@
 {% block content %}
 <div class="glass-form-container">
     <h2>🗓️ Agendar Atendimento com Cathelin Eloim</h2>
-    <p class="form-subtext">Selecione uma data no calendário e escolha um horário disponível.</p>
+    <p class="form-subtext">Reserve seu horário. O agendamento é notificado automaticamente para o telemóvel do studio (11963271437).</p>
 
-    <form action="{{ url_for('booking') }}" method="POST" id="bookingForm">
+    <form action="{{ url_for('booking') }}" method="POST">
         <div class="form-group">
             <label for="nome">Nome Completo:</label>
             <input type="text" id="nome" name="nome" placeholder="Digite seu nome completo" required>
@@ -28,48 +28,21 @@
 
         <div class="form-row">
             <div class="form-group">
-                <label for="data">📅 Data Desejada (Calendário):</label>
-                <input type="date" id="data" name="data" required class="input-date-styled" onchange="carregarHorariosOcupados(this.value)">
+                <label for="data">Data Desejada:</label>
+                <input type="date" id="data" name="data" required>
             </div>
-            
             <div class="form-group">
-                <label for="hora">⏰ Horário Disponível:</label>
+                <label for="hora">Horário Disponível:</label>
                 <select id="hora" name="hora" required>
-                    <option value="" disabled selected>Selecione a data primeiro...</option>
+                    <option value="" disabled selected>Horários...</option>
                     {% for h in horarios %}
-                        <option value="{{ h['hora'] }}" data-hora="{{ h['hora'] }}">{{ h['hora'] }}</option>
+                        <option value="{{ h['hora'] }}">{{ h['hora'] }}</option>
                     {% endfor %}
                 </select>
             </div>
         </div>
 
-        <button type="submit" class="btn-pink-action full-width" id="btnSubmit">Confirmar Agendamento</button>
+        <button type="submit" class="btn-pink-action full-width">Confirmar Reserva</button>
     </form>
 </div>
-
-<script>
-function carregarHorariosOcupados(dataSelecionada) {
-    const selectHora = document.getElementById('hora');
-    const options = selectHora.querySelectorAll('option[data-hora]');
-    
-    options.forEach(opt => {
-        opt.disabled = false;
-        opt.textContent = opt.getAttribute('data-hora');
-    });
-    
-    if (!dataSelecionada) return;
-
-    fetch('/api/horarios-ocupados/' + dataSelecionada)
-        .then(response => response.json())
-        .then(ocupados => {
-            options.forEach(opt => {
-                const horaVal = opt.getAttribute('data-hora');
-                if (ocupados.includes(horaVal)) {
-                    opt.disabled = true;
-                    opt.textContent = horaVal + ' ❌ (Ocupado)';
-                }
-            });
-        });
-}
-</script>
 {% endblock %}

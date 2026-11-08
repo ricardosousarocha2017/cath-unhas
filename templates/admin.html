@@ -6,6 +6,7 @@
     <p>Bem-vinda de volta, <strong>{{ username }}</strong>!</p>
 </div>
 
+<!-- KPIs Financeiros -->
 <div class="kpi-grid">
     <div class="kpi-card gold-border">
         <div class="kpi-icon">💰</div>
@@ -30,104 +31,125 @@
     </div>
 </div>
 
+<!-- Módulo 1: Segurança - Alterar Usuário e Senha -->
 <div class="admin-section-box highlight-box">
-    <h3>🗓️ Controle de Agenda: Liberar / Bloquear Datas e Horários</h3>
-    <p class="form-subtext">Você escolhe as datas e horários que ficarão disponíveis para suas clientes agendarem.</p>
-
-    <div class="schedule-control-grid">
-        <div class="control-box">
-            <h4 class="sub-heading">📅 Liberar Datas de Atendimento</h4>
-            <form action="{{ url_for('adicionar_data') }}" method="POST" class="form-flex-row">
-                <input type="date" name="nova_data" required class="input-date-styled">
-                <button type="submit" class="btn-pink-action btn-sm">+ Liberar Data</button>
-            </form>
-
-            <h5 class="margin-top-md">Datas Liberadas:</h5>
-            <div class="tags-container">
-                {% for d in datas_config %}
-                <div class="tag-item {% if d['ativo'] == 1 %}tag-active{% else %}tag-inactive{% endif %}">
-                    <span>{{ d['data'] }}</span>
-                    <form action="{{ url_for('toggle_data', data_id=d['id']) }}" method="POST" style="display:inline;">
-                        <button type="submit" class="btn-tag-toggle">
-                            {% if d['ativo'] == 1 %}🟢 Aberta{% else %}🔴 Bloqueada{% endif %}
-                        </button>
-                    </form>
-                    <form action="{{ url_for('remover_data', data_id=d['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Excluir esta data?');">
-                        <button type="submit" class="btn-tag-remove">❌</button>
-                    </form>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="control-box">
-            <h4 class="sub-heading">⏰ Liberar Horários de Atendimento</h4>
-            <form action="{{ url_for('adicionar_horario') }}" method="POST" class="form-flex-row">
-                <input type="time" name="novo_horario" required class="input-date-styled">
-                <button type="submit" class="btn-dark btn-sm">+ Adicionar Horário</button>
-            </form>
-
-            <h5 class="margin-top-md">Horários Padrão:</h5>
-            <div class="tags-container">
-                {% for h in horarios %}
-                <div class="tag-item {% if h['ativo'] == 1 %}tag-active{% else %}tag-inactive{% endif %}">
-                    <span>{{ h['hora'] }}</span>
-                    <form action="{{ url_for('toggle_horario', horario_id=h['id']) }}" method="POST" style="display:inline;">
-                        <button type="submit" class="btn-tag-toggle">
-                            {% if h['ativo'] == 1 %}🟢 Ativo{% else %}🔴 Pausado{% endif %}
-                        </button>
-                    </form>
-                    <form action="{{ url_for('remover_horario', horario_id=h['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Excluir este horário?');">
-                        <button type="submit" class="btn-tag-remove">❌</button>
-                    </form>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>
-</div>
-
-<div class="admin-section-box">
     <h3>🔐 Alteração de Usuário e Senha de Acesso</h3>
+    <p class="form-subtext">Altere os dados de login da administração a qualquer momento com total segurança.</p>
+
     <form action="{{ url_for('alterar_senha') }}" method="POST" class="form-flex-column">
         <div class="form-row">
             <div class="form-group">
-                <label for="novo_usuario">Novo Usuário:</label>
-                <input type="text" id="novo_usuario" name="novo_usuario" value="{{ username }}" required>
+                <label for="novo_usuario">Novo Nome de Usuário:</label>
+                <input type="text" id="novo_usuario" name="novo_usuario" value="{{ username }}" placeholder="Digite o novo usuário" required>
             </div>
             <div class="form-group">
                 <label for="nova_senha">Nova Senha:</label>
-                <input type="password" id="nova_senha" name="nova_senha" placeholder="Nova senha" required>
+                <input type="password" id="nova_senha" name="nova_senha" placeholder="Digite a nova senha" required>
             </div>
             <div class="form-group">
-                <label for="confirmar_senha">Confirmar Senha:</label>
+                <label for="confirmar_senha">Confirmar Nova Senha:</label>
                 <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Confirme a nova senha" required>
             </div>
         </div>
-        <button type="submit" class="btn-pink-action btn-sm auto-width">🔒 Atualizar Credenciais</button>
+        <button type="submit" class="btn-pink-action btn-sm auto-width">🔒 Atualizar Login e Senha</button>
     </form>
 </div>
 
+<!-- Módulo 2: Automações para 11963271437 -->
 <div class="admin-section-box">
-    <h3>➕ Cadastrar Serviço com Foto</h3>
+    <h3>⚡ Notificações Automáticas no Telemóvel (11963271437)</h3>
+    <p class="form-subtext">Defina os canais ativados para receber alertas instantâneos a cada novo agendamento.</p>
+    
+    <form action="{{ url_for('atualizar_config_api') }}" method="POST" class="form-flex-column">
+        <h4 class="sub-heading">📱 WhatsApp (Green-API)</h4>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Número WhatsApp (Com 55):</label>
+                <input type="text" name="whatsapp_admin" value="{{ configs.get('whatsapp_admin', '5511963271437') }}" required>
+            </div>
+            <div class="form-group">
+                <label>Green Instance ID:</label>
+                <input type="text" name="green_instance_id" value="{{ configs.get('green_instance_id', '710722792308') }}">
+            </div>
+            <div class="form-group">
+                <label>Green API Token:</label>
+                <input type="text" name="green_api_token" value="{{ configs.get('green_api_token', 'df045e5d35e245f08cda18c3dab805e49ecbf003012d478089') }}">
+            </div>
+        </div>
+
+        <h4 class="sub-heading">💬 SMS Direct & Telegram</h4>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Número SMS:</label>
+                <input type="text" name="sms_admin" value="{{ configs.get('sms_admin', '11963271437') }}">
+            </div>
+            <div class="form-group">
+                <label>Telegram Bot Token:</label>
+                <input type="text" name="telegram_bot_token" value="{{ configs.get('telegram_bot_token', '') }}">
+            </div>
+            <div class="form-group">
+                <label>Telegram Chat ID:</label>
+                <input type="text" name="telegram_chat_id" value="{{ configs.get('telegram_chat_id', '') }}">
+            </div>
+        </div>
+
+        <button type="submit" class="btn-dark">💾 Salvar Automações</button>
+    </form>
+</div>
+
+<!-- Módulo 3: Relatório Gerencial -->
+<div class="admin-section-box">
+    <h3>📈 Relatório Gerencial de Vendas por Serviço</h3>
+    {% if relatorio_servicos %}
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Procedimento</th>
+                    <th>Qtd Vendas</th>
+                    <th>Faturamento Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in relatorio_servicos %}
+                <tr>
+                    <td><strong>{{ r['servico'] }}</strong></td>
+                    <td>{{ r['qtd'] }} vendas</td>
+                    <td><strong class="text-gold">R$ {{ "%.2f"|format(r['total']) }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Módulo 4: Gerenciar Serviços & Upload de Fotos Reais pelo Administrador -->
+<div class="admin-section-box">
+    <h3>➕ Cadastrar Novo Serviço com Foto Customizada</h3>
     <form action="{{ url_for('adicionar_servico') }}" method="POST" enctype="multipart/form-data" class="form-flex-column margin-bottom">
         <div class="form-row">
             <div class="form-group flex-2">
                 <label>Nome do Serviço:</label>
-                <input type="text" name="nome_servico" placeholder="Ex: Banho de Gel" required>
+                <input type="text" name="nome_servico" placeholder="Ex: Encapsulada Luxo" required>
             </div>
             <div class="form-group flex-1">
                 <label>Preço (R$):</label>
-                <input type="number" step="0.01" name="preco_servico" placeholder="100.00" required>
+                <input type="number" step="0.01" name="preco_servico" placeholder="140.00" required>
             </div>
         </div>
+        
         <div class="form-row">
             <div class="form-group">
-                <label>📁 Enviar Foto (Computador/Celular):</label>
+                <label>📁 Enviar Imagem do Seu Dispositivo (Computador/Celular):</label>
                 <input type="file" name="foto_file" accept="image/*" class="file-input-styled">
             </div>
             <div class="form-group">
-                <label>🖼️ Ou Escolher Imagem Existente:</label>
+                <label>🌐 Ou Link de Imagem Externa (URL):</label>
+                <input type="url" name="imagem_url" placeholder="https://exemplo.com/minha_foto.jpg">
+            </div>
+            <div class="form-group">
+                <label>🖼️ Ou Selecionar das Imagens da Plataforma:</label>
                 <select name="imagem_servico">
                     {% for img in imagens_disponiveis %}
                         <option value="{{ img }}">{{ img }}</option>
@@ -140,7 +162,9 @@
 
     <hr class="separator">
 
-    <h3>💰 Procedimentos & Gerenciador de Fotos</h3>
+    <h3>💰 Procedimentos Exclusivos & Gerenciador / Upload de Fotos</h3>
+    <p class="form-subtext">Você pode atualizar o valor ou <strong>enviar uma foto nova do seu dispositivo</strong> para substituir a foto de qualquer procedimento abaixo.</p>
+
     <div class="services-admin-grid">
         {% for s in servicos %}
         <div class="service-admin-card">
@@ -151,17 +175,36 @@
                     <img src="{{ url_for('static', filename='images/' + s['imagem']) }}" alt="{{ s['nome'] }}">
                 {% endif %}
             </div>
+            
             <form action="{{ url_for('atualizar_servico_foto') }}" method="POST" enctype="multipart/form-data" class="form-flex-sm">
                 <input type="hidden" name="servico_id" value="{{ s['id'] }}">
                 <span class="serv-title">{{ s['nome'] }}</span>
+                
                 <div class="upload-field-box">
-                    <label>📤 Enviar Nova Foto:</label>
+                    <label>📤 Enviar Nova Foto (Dispositivo):</label>
                     <input type="file" name="nova_foto_file" accept="image/*" class="file-input-mini">
                 </div>
-                <label style="font-size: 0.8rem; font-weight: 600;">Valor (R$):</label>
+
+                <div class="upload-field-box">
+                    <label>🌐 Ou URL da Foto:</label>
+                    <input type="url" name="imagem_url" placeholder="https://..." class="input-mini-text">
+                </div>
+
+                <div class="upload-field-box">
+                    <label>🖼️ Ou Escolher Foto Existente:</label>
+                    <select name="imagem_servico" class="select-mini">
+                        {% for img in imagens_disponiveis %}
+                            <option value="{{ img }}" {% if s['imagem'] == img %}selected{% endif %}>{{ img }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <label style="font-size: 0.8rem; font-weight: 600; margin-top: 4px;">Valor (R$):</label>
                 <input type="number" step="0.01" name="novo_preco" value="{{ "%.2f"|format(s['preco']) }}" required>
-                <button type="submit" class="btn-dark btn-sm margin-top-xs">💾 Salvar Alterações</button>
+                
+                <button type="submit" class="btn-dark btn-sm margin-top-xs">💾 Salvar Alterações & Foto</button>
             </form>
+
             <form action="{{ url_for('remover_servico', servico_id=s['id']) }}" method="POST" onsubmit="return confirm('Excluir este serviço?');" class="margin-top-xs">
                 <button type="submit" class="btn-danger btn-sm full-width">Excluir</button>
             </form>
@@ -170,8 +213,9 @@
     </div>
 </div>
 
+<!-- Módulo 5: Histórico de Agendamentos -->
 <div class="admin-section-box">
-    <h3>📋 Histórico de Agendamentos Realizados</h3>
+    <h3>📋 Histórico de Agendamentos Registados</h3>
     {% if agendamentos %}
     <div class="table-container">
         <table class="custom-table">
@@ -184,7 +228,7 @@
                     <th>Valor</th>
                     <th>Data</th>
                     <th>Hora</th>
-                    <th>Ação</th>
+                    <th>Status Disparo</th>
                 </tr>
             </thead>
             <tbody>
@@ -195,13 +239,9 @@
                     <td>{{ a['telefone'] }}</td>
                     <td><span class="badge-executive">{{ a['servico'] }}</span></td>
                     <td>R$ {{ "%.2f"|format(a['preco']) }}</td>
-                    <td><strong>{{ a['data'] }}</strong></td>
-                    <td><strong>{{ a['hora'] }}</strong></td>
-                    <td>
-                        <form action="{{ url_for('remover_agendamento', agendamento_id=a['id']) }}" method="POST" onsubmit="return confirm('Cancelar este agendamento?');">
-                            <button type="submit" class="btn-danger btn-sm">Cancelar</button>
-                        </form>
-                    </td>
+                    <td>{{ a['data'] }}</td>
+                    <td>{{ a['hora'] }}</td>
+                    <td><span class="badge-auto">⚡ Notificado Automático</span></td>
                 </tr>
                 {% endfor %}
             </tbody>
