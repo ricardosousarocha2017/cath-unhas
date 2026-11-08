@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v14_clean')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v15_home_fixed')
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -177,17 +177,15 @@ def booking():
         data = request.form.get('data')
         hora = request.form.get('hora')
 
-        # Validação de segurança se a data escolhida no calendário está autorizada pelo Admin
         dt_valida = conn.execute('SELECT * FROM datas_config WHERE data = ? AND ativo = 1', (data,)).fetchone()
         if not dt_valida:
-            flash('A data selecionada não está disponível no sistema. Por favor, escolha uma data liberada.', 'danger')
+            flash('A data selecionada não está disponível. Por favor escolha uma data liberada.', 'danger')
             conn.close()
             return redirect(url_for('booking'))
 
-        # Impedir agendamento duplicado
         ocupado = conn.execute('SELECT * FROM agendamentos WHERE data = ? AND hora = ?', (data, hora)).fetchone()
         if ocupado:
-            flash(f'O horário {hora} para o dia {data} acabou de ser preenchido. Por favor selecione outro horário.', 'danger')
+            flash(f'O horário {hora} para o dia {data} já foi preenchido. Por favor selecione outro horário.', 'danger')
             conn.close()
             return redirect(url_for('booking'))
 
