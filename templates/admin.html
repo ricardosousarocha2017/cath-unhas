@@ -32,17 +32,17 @@
 
 <div class="admin-section-box highlight-box">
     <h3>🗓️ Controle de Agenda: Liberar / Bloquear Datas e Horários</h3>
-    <p class="form-subtext">Defina quais datas e horários de atendimento estão disponíveis para suas clientes.</p>
+    <p class="form-subtext">Você escolhe as datas e horários que ficarão disponíveis para suas clientes agendarem.</p>
 
     <div class="schedule-control-grid">
         <div class="control-box">
-            <h4 class="sub-heading">📅 Liberar Novas Datas de Atendimento</h4>
+            <h4 class="sub-heading">📅 Liberar Datas de Atendimento</h4>
             <form action="{{ url_for('adicionar_data') }}" method="POST" class="form-flex-row">
                 <input type="date" name="nova_data" required class="input-date-styled">
                 <button type="submit" class="btn-pink-action btn-sm">+ Liberar Data</button>
             </form>
 
-            <h5 class="margin-top-md">Datas Cadastradas:</h5>
+            <h5 class="margin-top-md">Datas Liberadas:</h5>
             <div class="tags-container">
                 {% for d in datas_config %}
                 <div class="tag-item {% if d['ativo'] == 1 %}tag-active{% else %}tag-inactive{% endif %}">
@@ -61,13 +61,13 @@
         </div>
 
         <div class="control-box">
-            <h4 class="sub-heading">⏰ Liberar / Bloquear Horários</h4>
+            <h4 class="sub-heading">⏰ Liberar Horários de Atendimento</h4>
             <form action="{{ url_for('adicionar_horario') }}" method="POST" class="form-flex-row">
                 <input type="time" name="novo_horario" required class="input-date-styled">
                 <button type="submit" class="btn-dark btn-sm">+ Adicionar Horário</button>
             </form>
 
-            <h5 class="margin-top-md">Horários de Atendimento Padrão:</h5>
+            <h5 class="margin-top-md">Horários Padrão:</h5>
             <div class="tags-container">
                 {% for h in horarios %}
                 <div class="tag-item {% if h['ativo'] == 1 %}tag-active{% else %}tag-inactive{% endif %}">
@@ -92,24 +92,86 @@
     <form action="{{ url_for('alterar_senha') }}" method="POST" class="form-flex-column">
         <div class="form-row">
             <div class="form-group">
-                <label for="novo_usuario">Novo Nome de Usuário:</label>
+                <label for="novo_usuario">Novo Usuário:</label>
                 <input type="text" id="novo_usuario" name="novo_usuario" value="{{ username }}" required>
             </div>
             <div class="form-group">
                 <label for="nova_senha">Nova Senha:</label>
-                <input type="password" id="nova_senha" name="nova_senha" placeholder="Digite a nova senha" required>
+                <input type="password" id="nova_senha" name="nova_senha" placeholder="Nova senha" required>
             </div>
             <div class="form-group">
-                <label for="confirmar_senha">Confirmar Nova Senha:</label>
+                <label for="confirmar_senha">Confirmar Senha:</label>
                 <input type="password" id="confirmar_senha" name="confirmar_senha" placeholder="Confirme a nova senha" required>
             </div>
         </div>
-        <button type="submit" class="btn-pink-action btn-sm auto-width">🔒 Atualizar Login e Senha</button>
+        <button type="submit" class="btn-pink-action btn-sm auto-width">🔒 Atualizar Credenciais</button>
     </form>
 </div>
 
 <div class="admin-section-box">
-    <h3>📋 Histórico de Agendamentos Marcados</h3>
+    <h3>➕ Cadastrar Serviço com Foto</h3>
+    <form action="{{ url_for('adicionar_servico') }}" method="POST" enctype="multipart/form-data" class="form-flex-column margin-bottom">
+        <div class="form-row">
+            <div class="form-group flex-2">
+                <label>Nome do Serviço:</label>
+                <input type="text" name="nome_servico" placeholder="Ex: Banho de Gel" required>
+            </div>
+            <div class="form-group flex-1">
+                <label>Preço (R$):</label>
+                <input type="number" step="0.01" name="preco_servico" placeholder="100.00" required>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>📁 Enviar Foto (Computador/Celular):</label>
+                <input type="file" name="foto_file" accept="image/*" class="file-input-styled">
+            </div>
+            <div class="form-group">
+                <label>🖼️ Ou Escolher Imagem Existente:</label>
+                <select name="imagem_servico">
+                    {% for img in imagens_disponiveis %}
+                        <option value="{{ img }}">{{ img }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <button type="submit" class="btn-pink-action btn-sm auto-width">+ Cadastrar Serviço</button>
+    </form>
+
+    <hr class="separator">
+
+    <h3>💰 Procedimentos & Gerenciador de Fotos</h3>
+    <div class="services-admin-grid">
+        {% for s in servicos %}
+        <div class="service-admin-card">
+            <div class="thumb-mini">
+                {% if s['imagem'].startswith('http://') or s['imagem'].startswith('https://') %}
+                    <img src="{{ s['imagem'] }}" alt="{{ s['nome'] }}">
+                {% else %}
+                    <img src="{{ url_for('static', filename='images/' + s['imagem']) }}" alt="{{ s['nome'] }}">
+                {% endif %}
+            </div>
+            <form action="{{ url_for('atualizar_servico_foto') }}" method="POST" enctype="multipart/form-data" class="form-flex-sm">
+                <input type="hidden" name="servico_id" value="{{ s['id'] }}">
+                <span class="serv-title">{{ s['nome'] }}</span>
+                <div class="upload-field-box">
+                    <label>📤 Enviar Nova Foto:</label>
+                    <input type="file" name="nova_foto_file" accept="image/*" class="file-input-mini">
+                </div>
+                <label style="font-size: 0.8rem; font-weight: 600;">Valor (R$):</label>
+                <input type="number" step="0.01" name="novo_preco" value="{{ "%.2f"|format(s['preco']) }}" required>
+                <button type="submit" class="btn-dark btn-sm margin-top-xs">💾 Salvar Alterações</button>
+            </form>
+            <form action="{{ url_for('remover_servico', servico_id=s['id']) }}" method="POST" onsubmit="return confirm('Excluir este serviço?');" class="margin-top-xs">
+                <button type="submit" class="btn-danger btn-sm full-width">Excluir</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="admin-section-box">
+    <h3>📋 Histórico de Agendamentos Realizados</h3>
     {% if agendamentos %}
     <div class="table-container">
         <table class="custom-table">

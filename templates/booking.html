@@ -3,7 +3,7 @@
 {% block content %}
 <div class="glass-form-container">
     <h2>🗓️ Agendar Atendimento com Cathelin Eloim</h2>
-    <p class="form-subtext">Selecione uma data no calendário e escolha os horários disponíveis definidos pela administração.</p>
+    <p class="form-subtext">Selecione uma data no calendário e escolha um horário disponível.</p>
 
     <form action="{{ url_for('booking') }}" method="POST" id="bookingForm">
         <div class="form-group">
@@ -28,7 +28,7 @@
 
         <div class="form-row">
             <div class="form-group">
-                <label for="data">📅 Selecione a Data no Calendário:</label>
+                <label for="data">📅 Data Desejada (Calendário):</label>
                 <input type="date" id="data" name="data" required class="input-date-styled" onchange="carregarHorariosOcupados(this.value)">
             </div>
             

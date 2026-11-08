@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_dates_v12')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_dates_v13')
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -52,6 +52,7 @@ def init_db():
         )
     ''')
 
+    # Tabela de datas liberadas pelo Administrador
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS datas_config (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -60,6 +61,7 @@ def init_db():
         )
     ''')
 
+    # Tabela de horários liberados pelo Administrador
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS horarios_config (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -116,6 +118,7 @@ def init_db():
     for h in horarios_padrao:
         cursor.execute('INSERT OR IGNORE INTO horarios_config (hora, ativo) VALUES (?, 1)', (h,))
 
+    # Liberar por padrão datas dos próximos dias
     hoje = datetime.now()
     cursor.execute('SELECT COUNT(*) FROM datas_config')
     if cursor.fetchone()[0] == 0:
@@ -140,7 +143,6 @@ def disparar_todos_os_meios(nome, telefone, servico, preco, data, hora):
     conn.close()
 
     target_wa = configs.get('whatsapp_admin', '5511963271437').strip()
-    target_sms = configs.get('sms_admin', '11963271437').strip()
     green_id = configs.get('green_instance_id', '').strip()
     green_token = configs.get('green_api_token', '').strip()
 
@@ -184,9 +186,17 @@ def booking():
         data = request.form.get('data')
         hora = request.form.get('hora')
 
+        # Validação se a data está liberada pelo Admin
+        dt_valida = conn.execute('SELECT * FROM datas_config WHERE data = ? AND ativo = 1', (data,)).fetchone()
+        if not dt_valida:
+            flash('A data selecionada não está disponível para agendamento. Escolha uma data liberada.', 'danger')
+            conn.close()
+            return redirect(url_for('booking'))
+
+        # Validação se o horário está ocupado
         ocupado = conn.execute('SELECT * FROM agendamentos WHERE data = ? AND hora = ?', (data, hora)).fetchone()
         if ocupado:
-            flash(f'O horário {hora} no dia {data} já foi reservado por outra cliente. Escolha outro horário.', 'danger')
+            flash(f'O horário {hora} no dia {data} já foi reservado. Escolha outro horário.', 'danger')
             conn.close()
             return redirect(url_for('booking'))
 
@@ -207,6 +217,7 @@ def booking():
     conn.close()
     return render_template('booking.html', servicos=servicos, datas=datas_disponiveis, horarios=horarios_ativos)
 
+# API REST para retornar horários ocupados por data
 @app.route('/api/horarios-ocupados/<data>')
 def horarios_ocupados(data):
     conn = get_db_connection()
@@ -292,9 +303,9 @@ def adicionar_data():
         try:
             conn.execute('INSERT INTO datas_config (data, ativo) VALUES (?, 1)', (nova_data,))
             conn.commit()
-            flash(f'Data {nova_data} disponibilizada para agendamentos!', 'success')
+            flash(f'Data {nova_data} liberada para atendimento!', 'success')
         except sqlite3.IntegrityError:
-            flash('Esta data já está cadastrada.', 'danger')
+            flash('Esta data já está na lista.', 'danger')
         finally:
             conn.close()
 
@@ -311,7 +322,7 @@ def toggle_data(data_id):
         novo_status = 0 if d['ativo'] == 1 else 1
         conn.execute('UPDATE datas_config SET ativo = ? WHERE id = ?', (novo_status, data_id))
         conn.commit()
-        flash('Status da data alterado com sucesso!', 'success')
+        flash('Status da data alterado!', 'success')
     conn.close()
     return redirect(url_for('admin'))
 
@@ -324,7 +335,7 @@ def remover_data(data_id):
     conn.execute('DELETE FROM datas_config WHERE id = ?', (data_id,))
     conn.commit()
     conn.close()
-    flash('Data removida com sucesso!', 'success')
+    flash('Data removida!', 'success')
     return redirect(url_for('admin'))
 
 @app.route('/admin/adicionar-horario', methods=['POST'])
@@ -370,7 +381,7 @@ def remover_horario(horario_id):
     conn.execute('DELETE FROM horarios_config WHERE id = ?', (horario_id,))
     conn.commit()
     conn.close()
-    flash('Horário excluído com sucesso!', 'success')
+    flash('Horário removido!', 'success')
     return redirect(url_for('admin'))
 
 @app.route('/admin/remover-agendamento/<int:agendamento_id>', methods=['POST'])
@@ -382,7 +393,7 @@ def remover_agendamento(agendamento_id):
     conn.execute('DELETE FROM agendamentos WHERE id = ?', (agendamento_id,))
     conn.commit()
     conn.close()
-    flash('Agendamento cancelado/excluído com sucesso!', 'success')
+    flash('Agendamento cancelado!', 'success')
     return redirect(url_for('admin'))
 
 @app.route('/admin/atualizar-config-api', methods=['POST'])
@@ -417,7 +428,7 @@ def alterar_senha():
         return redirect(url_for('admin'))
 
     if nova_senha != confirmar_senha:
-        flash('As senhas digitadas não coincidem. Tente novamente.', 'danger')
+        flash('As senhas digitadas não coincidem.', 'danger')
         return redirect(url_for('admin'))
 
     senha_hash = generate_password_hash(nova_senha)
@@ -427,7 +438,7 @@ def alterar_senha():
                      (novo_usuario, senha_hash, session['user_id']))
         conn.commit()
         session['username'] = novo_usuario
-        flash('Credenciais do administrador alteradas com sucesso!', 'success')
+        flash('Login e Senha alterados com sucesso!', 'success')
     except sqlite3.IntegrityError:
         flash('Nome de usuário indisponível.', 'danger')
     finally:
