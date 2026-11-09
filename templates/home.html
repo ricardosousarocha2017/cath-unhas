@@ -5,7 +5,12 @@
     <div class="insta-hero-card">
         <div class="profile-avatar-container">
             <div class="avatar-ring">
-                <img src="{{ url_for('static', filename='images/alongamento_molde.jpeg') }}" alt="Cathelin Eloim">
+                {% set avatar = configs.get('avatar_perfil', 'alongamento_molde.jpeg') if configs else 'alongamento_molde.jpeg' %}
+                {% if avatar.startswith('http://') or avatar.startswith('https://') %}
+                    <img src="{{ avatar }}" alt="Cathelin Eloim">
+                {% else %}
+                    <img src="{{ url_for('static', filename='images/' + avatar) }}" alt="Cathelin Eloim">
+                {% endif %}
             </div>
         </div>
         <div class="profile-meta">

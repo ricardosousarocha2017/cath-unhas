@@ -111,7 +111,8 @@ def init_db():
         ('pix_banco', 'Nubank'),
         ('valor_sinal_padrao', '30.00'),
         ('link_cartao_padrao', 'https://pay.mercadopago.com.br/checkout-exemplo-sinal'),
-        ('qr_code_image', 'qrcode_pix.png')
+        ('qr_code_image', 'qrcode_pix.png'),
+        ('avatar_perfil', 'alongamento_molde.jpeg')
     ]
     for c_chave, c_val in configs_iniciais:
         cursor.execute('INSERT OR IGNORE INTO config (chave, valor) VALUES (?, ?)', (c_chave, c_val))
@@ -185,8 +186,9 @@ def home():
     try:
         conn = get_db_connection()
         servicos = conn.execute('SELECT * FROM servicos').fetchall()
+        configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
         conn.close()
-        return render_template('home.html', servicos=servicos)
+        return render_template('home.html', servicos=servicos, configs=configs)
     except Exception as e:
         return f"Erro na página inicial: {e}", 500
 
@@ -670,6 +672,39 @@ def logout():
     session.clear()
     flash('Sessão encerrada.', 'info')
     return redirect(url_for('login'))
+
+
+@app.route('/admin/atualizar-avatar-perfil', methods=['POST'])
+def atualizar_avatar_perfil():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        conn = get_db_connection()
+        avatar_url = request.form.get('avatar_url', '').strip()
+        avatar_final = None
+
+        if 'avatar_file' in request.files and request.files['avatar_file'].filename != '':
+            file = request.files['avatar_file']
+            if file and allowed_file(file.filename):
+                filename = secure_filename('avatar_' + file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                avatar_final = filename
+
+        if not avatar_final and avatar_url:
+            avatar_final = avatar_url
+
+        if avatar_final:
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('avatar_perfil', ?)", (avatar_final,))
+            conn.commit()
+            flash('Foto do perfil atualizada com sucesso!', 'success')
+        
+        conn.close()
+    except Exception as e:
+        flash(f'Erro ao atualizar foto de perfil: {e}', 'danger')
+
+    return redirect(url_for('admin'))
+
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))

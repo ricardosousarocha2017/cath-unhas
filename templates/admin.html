@@ -33,6 +33,27 @@
         </div>
     </div>
 
+    
+    <!-- 1.5. Gerenciador da Foto do Perfil (Avatar) -->
+    <div class="admin-card">
+        <h3>📸 Foto do Perfil (Avatar da Página Inicial)</h3>
+        <p class="admin-sub">Altere a imagem exibida no círculo de perfil da plataforma.</p>
+        
+        <form action="{{ url_for('atualizar_avatar_perfil') }}" method="POST" enctype="multipart/form-data" class="form-flex-column">
+            <div class="form-row-grid">
+                <div class="form-group">
+                    <label>Enviar Nova Foto (Arquivo):</label>
+                    <input type="file" name="avatar_file" accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>Ou URL da Imagem (opcional):</label>
+                    <input type="text" name="avatar_url" placeholder="https://...">
+                </div>
+            </div>
+            <button type="submit" class="btn-pink-action">🖼️ Atualizar Foto do Perfil</button>
+        </form>
+    </div>
+
     <!-- 1. Gerenciador de Sinal, Pix e Link de Cartão -->
     <div class="admin-card">
         <h3>💳 Gerenciador do Valor do Sinal, Pix & Link de Crédito/Débito</h3>
