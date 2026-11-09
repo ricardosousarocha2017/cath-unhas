@@ -14,7 +14,10 @@
             <label for="password">Senha de Acesso:</label>
             <input type="password" id="password" name="password" placeholder="Senha" required>
         </div>
-        <button type="submit" class="btn-pink-action full-width">Acessar Painel</button>
+        <button type="submit" class="btn-pink-action full-width" style="margin-bottom: 12px;">Acessar Painel</button>
+        <div style="text-align: center; margin-top: 10px;">
+            <a href="{{ url_for('recuperar_senha') }}" style="color: #7a1c3d; font-size: 0.85rem; text-decoration: none;">Esqueceu sua senha ou usuário? Clique aqui</a>
+        </div>
     </form>
 </div>
 {% endblock %}
