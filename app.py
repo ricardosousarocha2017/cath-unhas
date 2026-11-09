@@ -201,7 +201,7 @@ def booking():
         horarios_ativos = conn.execute('SELECT * FROM horarios_config WHERE ativo = 1 ORDER BY hora ASC').fetchall()
         configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
         
-        valor_sinal_padrao = float(configs.get('valor_sinal_padrao', '30.00'))
+        valor_sinal_padrao = float(str(configs.get('valor_sinal_padrao', '30.00')).replace(',', '.'))
         link_cartao_padrao = configs.get('link_cartao_padrao', 'https://pay.mercadopago.com.br/checkout-exemplo')
 
         if request.method == 'POST':
@@ -642,7 +642,7 @@ def adicionar_servico():
         if nome_servico and preco_servico:
             conn = get_db_connection()
             conn.execute('INSERT INTO servicos (nome, preco, imagem) VALUES (?, ?, ?)', 
-                         (nome_servico, float(preco_servico), imagem_servico))
+                         (nome_servico, float(str(preco_servico).replace(',', '.')), imagem_servico))
             conn.commit()
             conn.close()
             flash('Serviço cadastrado com sucesso!', 'success')
@@ -739,9 +739,9 @@ def atualizar_servico_foto():
         if servico_id and novo_preco:
             conn = get_db_connection()
             if imagem_final:
-                conn.execute('UPDATE servicos SET preco = ?, imagem = ? WHERE id = ?', (float(novo_preco), imagem_final, servico_id))
+                conn.execute('UPDATE servicos SET preco = ?, imagem = ? WHERE id = ?', (float(str(novo_preco).replace(',', '.')), imagem_final, servico_id))
             else:
-                conn.execute('UPDATE servicos SET preco = ? WHERE id = ?', (float(novo_preco), servico_id))
+                conn.execute('UPDATE servicos SET preco = ? WHERE id = ?', (float(str(novo_preco).replace(',', '.')), servico_id))
             conn.commit()
             conn.close()
             flash('Serviço e foto atualizados com sucesso!', 'success')
