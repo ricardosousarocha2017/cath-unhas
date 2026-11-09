@@ -7,7 +7,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
-app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v22_debug_safe')
+app.secret_key = os.environ.get('SECRET_KEY', 'cath_unhas_cathelin_eloim_v23_final_fix')
 
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'images')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
@@ -362,7 +362,7 @@ def admin():
                                agendamentos=agendamentos, 
                                servicos=servicos, 
                                datas_config=datas_config,
-                               horarios=horarios_config, 
+                               horarios_config=horarios_config, 
                                configs=configs,
                                username=session.get('username'),
                                total_faturamento=total_faturamento,
@@ -434,6 +434,11 @@ def atualizar_sinal_pix():
         flash(f'Erro ao atualizar configurações: {e}', 'danger')
 
     return redirect(url_for('admin'))
+
+# Alias para garantir compatibilidade caso algum template chame admin_atualizar_sinal_pix
+@app.route('/admin/atualizar-sinal-pix-alias', methods=['POST'])
+def admin_atualizar_sinal_pix():
+    return atualizar_sinal_pix()
 
 @app.route('/admin/adicionar-data', methods=['POST'])
 def adicionar_data():
