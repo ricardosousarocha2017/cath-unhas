@@ -1,13 +1,56 @@
 {% extends "base.html" %}
 
 {% block content %}
-<section class="hero-executive">
-    <div class="hero-backdrop"></div>
-    <div class="hero-inner">
-        <span class="luxury-tag">Nail Design & Alta Perfomance</span>
-        <h1>Sua Imagem Merece Unhas de Luxo</h1>
-        <p>Especialista em Molde F1 e Banho de Gel com acabamento impecável, máxima durabilidade e elegância.</p>
-        <a href="{{ url_for('booking') }}" class="btn-gold-action">👑 Agendar Meu Horário Agora</a>
+<section class="insta-profile-hero">
+    <div class="insta-hero-card">
+        <div class="profile-avatar-container">
+            <div class="avatar-ring">
+                {% set avatar = configs.get('avatar_perfil', 'alongamento_molde.jpeg') if configs else 'alongamento_molde.jpeg' %}
+                {% if avatar.startswith('http://') or avatar.startswith('https://') %}
+                    <img src="{{ avatar }}" alt="Cathelin Eloim">
+                {% else %}
+                    <img src="{{ url_for('static', filename='images/' + avatar) }}" alt="Cathelin Eloim">
+                {% endif %}
+            </div>
+        </div>
+        <div class="profile-meta">
+            <div class="profile-handle">
+                <h1>cath_unhass</h1>
+                <span class="verified-badge">🏆</span>
+            </div>
+            <h2 class="profile-name">Cathelin Eloim | Nail Designer</h2>
+            <p class="profile-bio">
+                ✨ <strong>8 anos de tradição em nail design e sofisticação</strong><br>
+                💎 Elegância até a ponta dos dedos | Itapecerica da Serra<br>
+                👑 Especialista em Molde F1, Banho de Gel e Recuperação de Unhas Roídas
+            </p>
+            <div class="profile-actions">
+                <a href="{{ url_for('booking') }}" class="btn-pink-action">👑 Agendar Meu Horário</a>
+                <a href="https://instagram.com/cath_unhass" target="_blank" class="btn-insta-outline">📸 Ver Instagram @cath_unhass</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="highlights-section">
+    <h3 class="highlights-title">DESTAQUES</h3>
+    <div class="highlights-grid">
+        <div class="highlight-item">
+            <div class="highlight-circle"><span>💖</span></div>
+            <p>Dezembro 🎄</p>
+        </div>
+        <div class="highlight-item">
+            <div class="highlight-circle"><span>💰</span></div>
+            <p>Valores</p>
+        </div>
+        <div class="highlight-item">
+            <div class="highlight-circle"><span>💅</span></div>
+            <p>Unhas Roídas</p>
+        </div>
+        <div class="highlight-item">
+            <div class="highlight-circle"><span>💕</span></div>
+            <p>Vocês</p>
+        </div>
     </div>
 </section>
 
@@ -16,7 +59,11 @@
     {% for s in servicos %}
     <div class="service-card-executive">
         <div class="card-thumb">
-            <img src="{{ url_for('static', filename='images/' + s['imagem']) }}" alt="{{ s['nome'] }}">
+            {% if s['imagem'].startswith('http://') or s['imagem'].startswith('https://') %}
+                <img src="{{ s['imagem'] }}" alt="{{ s['nome'] }}">
+            {% else %}
+                <img src="{{ url_for('static', filename='images/' + s['imagem']) }}" alt="{{ s['nome'] }}">
+            {% endif %}
         </div>
         <div class="card-content">
             <h3>{{ s['nome'] }}</h3>
@@ -25,27 +72,5 @@
         </div>
     </div>
     {% endfor %}
-</section>
-
-<section class="portfolio-section">
-    <h2 class="section-title">Portfólio de Trabalhos Reais</h2>
-    <div class="portfolio-grid">
-        <div class="portfolio-item">
-            <img src="{{ url_for('static', filename='images/img_brasil.jpeg') }}" alt="Nail Art Brasil">
-            <div class="portfolio-caption">Nail Art Brasil & Pedrarias</div>
-        </div>
-        <div class="portfolio-item">
-            <img src="{{ url_for('static', filename='images/img_gel.jpeg') }}" alt="Banho de Gel Nude">
-            <div class="portfolio-caption">Banho de Gel Nude Luxo</div>
-        </div>
-        <div class="portfolio-item">
-            <img src="{{ url_for('static', filename='images/img_coracoes.jpeg') }}" alt="Corações Vermelhos">
-            <div class="portfolio-caption">Nail Art Romântica Corações</div>
-        </div>
-        <div class="portfolio-item">
-            <img src="{{ url_for('static', filename='images/img_silver.jpeg') }}" alt="Alongamento Stiletto">
-            <div class="portfolio-caption">Alongamento Stiletto Prata</div>
-        </div>
-    </div>
 </section>
 {% endblock %}

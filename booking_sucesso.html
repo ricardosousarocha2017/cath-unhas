@@ -3,19 +3,39 @@
 {% block content %}
 <div class="glass-form-container text-center">
     <div class="luxury-icon">✨</div>
-    <h2>Agendamento Confirmado!</h2>
-    <p class="success-intro">Obrigado, <strong>{{ nome }}</strong>! Sua reserva foi efetuada com sucesso.</p>
+    <h2>Agendamento Realizado com Sucesso!</h2>
+    <p class="success-intro">Obrigado, <strong>{{ nome }}</strong>! Sua reserva foi registrada e um comprovante digital foi emitido para você e para o Studio.</p>
     
     <div class="summary-card">
+        <div class="summary-row"><span>ID da Reserva:</span> <strong>#{{ agendamento_id }}</strong></div>
         <div class="summary-row"><span>Procedimento:</span> <strong>{{ servico }}</strong></div>
-        <div class="summary-row"><span>Valor:</span> <strong>R$ {{ "%.2f"|format(preco) }}</strong></div>
-        <div class="summary-row"><span>Data:</span> <strong>{{ data }}</strong></div>
-        <div class="summary-row"><span>Horário:</span> <strong>{{ hora }}</strong></div>
+        <div class="summary-row"><span>Valor Total:</span> <strong>R$ {{ "%.2f"|format(preco) }}</strong></div>
+        <div class="summary-row"><span>Sinal de Garantia:</span> <strong>R$ {{ "%.2f"|format(valor_sinal) }}</strong></div>
+        <div class="summary-row"><span>Forma de Pagamento:</span> <strong>{{ forma_pagamento }}</strong></div>
+        <div class="summary-row"><span>Status do Sinal:</span> <strong style="color: #d63384;">{{ status_sinal }}</strong></div>
+        <div class="summary-row"><span>Data / Horário:</span> <strong>{{ data }} às {{ hora }}</strong></div>
     </div>
 
-    <p class="privacy-info">⚡ <em>A administração foi notificada automaticamente por WhatsApp/SMS!</em></p>
+    {% if 'Pix' in forma_pagamento %}
+    <div class="pix-confirmation-box margin-top-md">
+        <h4>📱 Pagamento do Sinal via Pix</h4>
+        <p>Realize o Pix no valor de <strong>R$ {{ "%.2f"|format(valor_sinal) }}</strong> para garantir seu horário:</p>
+        <div class="qr-code-wrapper">
+            <img src="{{ url_for('static', filename='images/' + configs.get('qr_code_image', 'qrcode_pix.png')) }}" alt="QR Code Pix" class="qr-code-img">
+        </div>
+        <p class="margin-top-xs">Chave Pix: <strong>{{ configs.get('pix_chave', '11963271437') }}</strong></p>
+    </div>
+    {% elif 'Cartão' in forma_pagamento or 'Crédito' in forma_pagamento %}
+    <div class="pix-confirmation-box margin-top-md">
+        <h4>💳 Pagamento do Sinal via Link de Cartão</h4>
+        <p>Clique no link abaixo para concluir o pagamento do sinal de <strong>R$ {{ "%.2f"|format(valor_sinal) }}</strong>:</p>
+        <a href="{{ link_pagamento }}" target="_blank" class="btn-card-link">🔗 Pagar Sinal com Cartão</a>
+    </div>
+    {% endif %}
 
-    <br>
-    <a href="{{ url_for('home') }}" class="btn-service-booking">← Voltar para o Início</a>
+    <div class="comprovante-actions margin-top-md">
+        <a href="{{ url_for('comprovante', agendamento_id=agendamento_id) }}" target="_blank" class="btn-pink-action">📄 Visualizar / Imprimir Comprovante Oficial</a>
+        <a href="{{ url_for('home') }}" class="btn-insta-outline">← Voltar para o Início</a>
+    </div>
 </div>
 {% endblock %}

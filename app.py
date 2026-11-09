@@ -706,6 +706,43 @@ def atualizar_avatar_perfil():
     return redirect(url_for('admin'))
 
 
+
+@app.route('/recuperar-senha', methods=['GET', 'POST'])
+def recuperar_senha():
+    try:
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM usuarios LIMIT 1').fetchone()
+        configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
+        conn.close()
+
+        if request.method == 'POST':
+            target_wa = configs.get('whatsapp_admin', '5511963271437').strip()
+            green_id = configs.get('green_instance_id', '').strip()
+            green_token = configs.get('green_api_token', '').strip()
+
+            if user and target_wa and green_id and green_token:
+                msg = (
+                    f"🔐 *RECUPERAÇÃO DE ACESSO — CATH UNHAS*\n"
+                    f"👤 *Usuário:* {user['usuario']}\n"
+                    f"💡 *Aviso:* Por segurança, caso precise redefinir sua senha, acesse o painel após o login ou utilize o banco de dados."
+                )
+                try:
+                    url_green = f"https://7107.api.greenapi.com/waInstance{green_id}/sendMessage/{green_token}"
+                    headers = {'Content-Type': 'application/json'}
+                    requests.post(url_green, json={"chatId": f"{target_wa}@c.us", "message": msg}, headers=headers, timeout=5)
+                    flash('As credenciais de acesso foram enviadas para o WhatsApp do Administrador cadastrado!', 'success')
+                except Exception as e:
+                    flash(f'Erro ao enviar mensagem via WhatsApp: {e}', 'danger')
+            else:
+                flash('Configurações de WhatsApp ou Administrador não encontradas.', 'danger')
+            
+            return redirect(url_for('login'))
+
+        return render_template('recuperar_senha.html', configs=configs)
+    except Exception as e:
+        return f"Erro na recuperação de senha: {e}", 500
+
+
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)

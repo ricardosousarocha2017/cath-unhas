@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="glass-form-container small-card">
+    <h2>🔑 Recuperar Acesso</h2>
+    <p class="form-subtext">Enviar usuário e instruções para o WhatsApp do Administrador</p>
+
+    <form action="{{ url_for('recuperar_senha') }}" method="POST">
+        <p style="font-size: 0.9rem; color: #555; margin-bottom: 20px; line-height: 1.5;">
+            Ao clicar no botão abaixo, o sistema disparará imediatamente uma mensagem via WhatsApp para o número cadastrado no painel com o seu usuário de acesso.
+        </p>
+        <button type="submit" class="btn-pink-action full-width" style="margin-bottom: 12px;">📲 Enviar por WhatsApp</button>
+        <a href="{{ url_for('login') }}" class="btn-insta-outline full-width" style="text-align: center; display: block; padding: 10px; text-decoration: none;">Voltar para o Login</a>
+    </form>
+</div>
+{% endblock %}
