@@ -674,3 +674,43 @@ def logout():
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
+@app.route('/admin/atualizar-servico-foto', methods=['POST'])
+def atualizar_servico_foto():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        servico_id = request.form.get('servico_id')
+        novo_preco = request.form.get('novo_preco')
+        imagem_selecionada = request.form.get('imagem_servico')
+        url_imagem = request.form.get('imagem_url', '').strip()
+
+        imagem_final = None
+
+        if 'nova_foto_file' in request.files and request.files['nova_foto_file'].filename != '':
+            file = request.files['nova_foto_file']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                imagem_final = filename
+
+        if not imagem_final and url_imagem:
+            imagem_final = url_imagem
+
+        if not imagem_final and imagem_selecionada:
+            imagem_final = imagem_selecionada
+
+        if servico_id and novo_preco:
+            conn = get_db_connection()
+            if imagem_final:
+                conn.execute('UPDATE servicos SET preco = ?, imagem = ? WHERE id = ?', (float(novo_preco), imagem_final, servico_id))
+            else:
+                conn.execute('UPDATE servicos SET preco = ? WHERE id = ?', (float(novo_preco), servico_id))
+            conn.commit()
+            conn.close()
+            flash('Serviço e foto atualizados com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro ao atualizar serviço: {e}', 'danger')
+
+    return redirect(url_for('admin'))
