@@ -16,6 +16,13 @@
         <div class="summary-row"><span>Data / Horário:</span> <strong>{{ data }} às {{ hora }}</strong></div>
     </div>
 
+    
+    <div class="alert alert-info margin-top-md" style="background: #fff3f8; border: 1px solid #f8d7da; padding: 15px; border-radius: 8px; color: #7a1c3d; text-align: left; font-size: 0.95rem;">
+        ⚠️ <strong>Aviso Importante sobre o Pagamento:</strong><br>
+        O seu comprovante de Pix / Pagamento via Link foi registrado e enviado ao sistema. O pagamento passará por <strong>conferência automática e manual no banco</strong>. Assim que validado, o status será atualizado para confirmado no Studio.
+    </div>
+
+
     {% if 'Pix' in forma_pagamento %}
     <div class="pix-confirmation-box margin-top-md">
         <h4>📱 Pagamento do Sinal via Pix</h4>
