@@ -100,19 +100,21 @@ def init_db():
         )
     ''')
 
+    
     configs_iniciais = [
-        ('whatsapp_admin', '5511963271437'),
-        ('sms_admin', '11963271437'),
-        ('email_admin', ''),
-        ('green_instance_id', '710722792308'),
-        ('green_api_token', 'df045e5d35e245f08cda18c3dab805e49ecbf003012d478089'),
-        ('pix_chave', '11963271437'),
-        ('pix_titular', 'Cathelin Eloim'),
-        ('pix_banco', 'Nubank'),
-        ('valor_sinal_padrao', '30.00'),
-        ('link_cartao_padrao', 'https://pay.mercadopago.com.br/checkout-exemplo-sinal'),
-        ('qr_code_image', 'qrcode_pix.png'),
-        ('avatar_perfil', 'alongamento_molde.jpeg')
+        ('whatsapp_admin', os.environ.get('WHATSAPP_ADMIN', '5511963271437')),
+        ('sms_admin', os.environ.get('SMS_ADMIN', '11963271437')),
+        ('email_admin', os.environ.get('EMAIL_ADMIN', '')),
+        ('green_instance_id', os.environ.get('GREEN_INSTANCE_ID', '710722792308')),
+        ('green_api_token', os.environ.get('GREEN_API_TOKEN', 'df045e5d35e245f08cda18c3dab805e49ecbf003012d478089')),
+        ('pix_chave', os.environ.get('PIX_CHAVE', '11963271437')),
+        ('pix_titular', os.environ.get('PIX_TITULAR', 'Cathelin Eloim')),
+        ('pix_banco', os.environ.get('PIX_BANCO', 'Nubank')),
+        ('valor_sinal_padrao', os.environ.get('VALOR_SINAL_PADRAO', '30.00')),
+        ('link_cartao_padrao', os.environ.get('LINK_CARTAO_PADRAO', 'https://pay.mercadopago.com.br/checkout-exemplo-sinal')),
+        ('qr_code_image', os.environ.get('QR_CODE_IMAGE', 'qrcode_pix.png')),
+        ('avatar_perfil', os.environ.get('AVATAR_PERFIL', 'alongamento_molde.jpeg')),
+        ('admin_senha_texto', os.environ.get('ADMIN_SENHA_TEXTO', '1234'))
     ]
     for c_chave, c_val in configs_iniciais:
         cursor.execute('INSERT OR IGNORE INTO config (chave, valor) VALUES (?, ?)', (c_chave, c_val))
