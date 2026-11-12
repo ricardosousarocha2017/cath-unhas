@@ -505,3 +505,252 @@ def adicionar_servico():
         flash(f'Erro ao cadastrar serviço: {e}', 'danger')
 
     return redirect(url_for('admin'))
+
+
+@app.route('/admin/atualizar-servico-foto', methods=['POST'])
+def atualizar_servico_foto():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        servico_id = request.form.get('servico_id')
+        novo_preco = request.form.get('novo_preco')
+        imagem_selecionada = request.form.get('imagem_servico')
+        url_imagem = request.form.get('imagem_url', '').strip()
+
+        imagem_final = None
+
+        if 'nova_foto_file' in request.files and request.files['nova_foto_file'].filename != '':
+            file = request.files['nova_foto_file']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                imagem_final = filename
+
+        if not imagem_final and url_imagem:
+            imagem_final = url_imagem
+
+        if not imagem_final and imagem_selecionada:
+            imagem_final = imagem_selecionada
+
+        if servico_id and novo_preco:
+            conn = get_db_connection()
+            if imagem_final:
+                conn.execute('UPDATE servicos SET preco = ?, imagem = ? WHERE id = ?', (float(str(novo_preco).replace(',', '.')), imagem_final, servico_id))
+            else:
+                conn.execute('UPDATE servicos SET preco = ? WHERE id = ?', (float(str(novo_preco).replace(',', '.')), servico_id))
+            conn.commit()
+            conn.close()
+            flash('Serviço e foto atualizados com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro ao atualizar serviço: {e}', 'danger')
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/adicionar-data', methods=['POST'])
+def adicionar_data():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    nova_data = request.form.get('nova_data', '').strip()
+    if nova_data:
+        try:
+            conn = get_db_connection()
+            conn.execute('INSERT INTO datas_config (data, ativo) VALUES (?, 1)', (nova_data,))
+            conn.commit()
+            conn.close()
+            flash(f'Data {nova_data} liberada no sistema!', 'success')
+        except sqlite3.IntegrityError:
+            flash('Data já existente.', 'danger')
+        except Exception as e:
+            flash(f'Erro: {e}', 'danger')
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/toggle-data/<int:data_id>', methods=['POST'])
+def toggle_data(data_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        conn = get_db_connection()
+        d = conn.execute('SELECT ativo FROM datas_config WHERE id = ?', (data_id,)).fetchone()
+        if d:
+            novo_status = 0 if d['ativo'] == 1 else 1
+            conn.execute('UPDATE datas_config SET ativo = ? WHERE id = ?', (novo_status, data_id))
+            conn.commit()
+            flash('Status da data alterado!', 'success')
+        conn.close()
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/remover-data/<int:data_id>', methods=['POST'])
+def remover_data(data_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        conn = get_db_connection()
+        conn.execute('DELETE FROM datas_config WHERE id = ?', (data_id,))
+        conn.commit()
+        conn.close()
+        flash('Data removida!', 'success')
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/adicionar-horario', methods=['POST'])
+def adicionar_horario():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    novo_horario = request.form.get('novo_horario', '').strip()
+    if novo_horario:
+        try:
+            conn = get_db_connection()
+            conn.execute('INSERT INTO horarios_config (hora, ativo) VALUES (?, 1)', (novo_horario,))
+            conn.commit()
+            conn.close()
+            flash('Horário adicionado!', 'success')
+        except sqlite3.IntegrityError:
+            flash('Este horário já existe.', 'danger')
+        except Exception as e:
+            flash(f'Erro: {e}', 'danger')
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/toggle-horario/<int:horario_id>', methods=['POST'])
+def toggle_horario(horario_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        conn = get_db_connection()
+        h = conn.execute('SELECT ativo FROM horarios_config WHERE id = ?', (horario_id,)).fetchone()
+        if h:
+            novo_status = 0 if h['ativo'] == 1 else 1
+            conn.execute('UPDATE horarios_config SET ativo = ? WHERE id = ?', (novo_status, horario_id))
+            conn.commit()
+            flash('Status do horário alterado!', 'success')
+        conn.close()
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/remover-horario/<int:horario_id>', methods=['POST'])
+def remover_horario(horario_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        conn = get_db_connection()
+        conn.execute('DELETE FROM horarios_config WHERE id = ?', (horario_id,))
+        conn.commit()
+        conn.close()
+        flash('Horário removido!', 'success')
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/remover-agendamento/<int:agendamento_id>', methods=['POST'])
+def remover_agendamento(agendamento_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        conn = get_db_connection()
+        conn.execute('DELETE FROM agendamentos WHERE id = ?', (agendamento_id,))
+        conn.commit()
+        conn.close()
+        flash('Agendamento cancelado com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/alterar-senha', methods=['POST'])
+def alterar_senha():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        novo_usuario = request.form.get('novo_usuario', '').strip()
+        nova_senha = request.form.get('nova_senha', '').strip()
+        confirmar_senha = request.form.get('confirmar_senha', '').strip()
+
+        if not novo_usuario or not nova_senha:
+            flash('Preencha todos os campos.', 'danger')
+            return redirect(url_for('admin'))
+
+        if nova_senha != confirmar_senha:
+            flash('As senhas não coincidem.', 'danger')
+            return redirect(url_for('admin'))
+
+        senha_hash = generate_password_hash(nova_senha)
+        conn = get_db_connection()
+        conn.execute('UPDATE usuarios SET usuario = ?, senha = ? WHERE id = ?', 
+                     (novo_usuario, senha_hash, session['user_id']))
+        conn.commit()
+        session['username'] = novo_usuario
+        conn.close()
+        flash('Login e senha atualizados!', 'success')
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
+
+    return redirect(url_for('admin'))
+
+@app.route('/admin/remover-servico/<int:servico_id>', methods=['POST'])
+def remover_servico(servico_id):
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        conn = get_db_connection()
+        conn.execute('DELETE FROM servicos WHERE id = ?', (servico_id,))
+        conn.commit()
+        conn.close()
+        flash('Serviço removido!', 'success')
+    except Exception as e:
+        flash(f'Erro: {e}', 'danger')
+
+    return redirect(url_for('admin'))
+
+@app.route('/recuperar-senha', methods=['GET', 'POST'])
+def recuperar_senha():
+    try:
+        conn = get_db_connection()
+        user = conn.execute('SELECT * FROM usuarios LIMIT 1').fetchone()
+        configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
+        conn.close()
+
+        if request.method == 'POST':
+            target_wa = configs.get('whatsapp_admin', '5511963271437').strip()
+            green_id = configs.get('green_instance_id', '').strip()
+            green_token = configs.get('green_api_token', '').strip()
+
+            if user and target_wa and green_id and green_token:
+                msg = (
+                    f"🔐 *RECUPERAÇÃO DE ACESSO — CATH UNHAS*\n"
+                    f"👤 *Usuário:* {user['usuario']}\n"
+                    f"💡 *Aviso:* Por segurança, caso precise redefinir sua senha, acesse o painel após o login ou utilize o banco de dados."
+                )
+                try:
+                    url_green = f"https://7107.api.greenapi.com/waInstance{green_id}/sendMessage/{green_token}"
+                    headers = {'Content-Type': 'application/json'}
+                    requests.post(url_green, json={"chatId": f"{target_wa}@c.us", "message": msg}, headers=headers, timeout=5)
+                    flash('As credenciais de acesso foram enviadas para o WhatsApp do Administrador cadastrado!', 'success')
+                except Exception as e:
+                    flash(f'Erro ao enviar mensagem via WhatsApp: {e}', 'danger')
+            else:
+                flash('Configurações de WhatsApp ou Administrador não encontradas.', 'danger')
+            
+            return redirect(url_for('login'))
+
+        return render_template('recuperar_senha.html', configs=configs)
+    except Exception as e:
+        return f"Erro na recuperação de senha: {e}", 500
