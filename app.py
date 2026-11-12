@@ -433,3 +433,9 @@ def alterar_status_sinal(agendamento_id):
     return redirect(url_for('admin'))
 
 
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    flash('Sessão encerrada com sucesso.', 'info')
+    return redirect(url_for('home'))
