@@ -439,3 +439,34 @@ def logout():
     session.clear()
     flash('Sessão encerrada com sucesso.', 'info')
     return redirect(url_for('home'))
+
+@app.route('/admin/atualizar-avatar-perfil', methods=['POST'])
+def atualizar_avatar_perfil():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        conn = get_db_connection()
+        avatar_url = request.form.get('avatar_url', '').strip()
+        avatar_final = None
+
+        if 'avatar_file' in request.files and request.files['avatar_file'].filename != '':
+            file = request.files['avatar_file']
+            if file and allowed_file(file.filename):
+                filename = secure_filename('avatar_' + file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                avatar_final = filename
+
+        if not avatar_final and avatar_url:
+            avatar_final = avatar_url
+
+        if avatar_final:
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('avatar_perfil', ?)", (avatar_final,))
+            conn.commit()
+            flash('Foto do perfil atualizada com sucesso!', 'success')
+        
+        conn.close()
+    except Exception as e:
+        flash(f'Erro ao atualizar foto de perfil: {e}', 'danger')
+
+    return redirect(url_for('admin'))
