@@ -1,11 +1,22 @@
 {% extends "base.html" %}
-{% block title %}Login{% endblock %}
 {% block content %}
-<h2>Acessar Conta</h2>
-<form method="POST">
-    <input type="email" name="email" placeholder="E-mail" required><br>
-    <input type="password" name="password" placeholder="Senha" required><br>
-    <button type="submit">Entrar</button>
-</form>
-<p><a href="{{ url_for('recuperar_senha') }}">Esqueceu a senha?</a></p>
+<div class="glass-form-container" style="max-width: 440px;">
+    <h2>🔐 Restrito — Administração</h2>
+    <p style="color: #aa396e; margin-bottom: 1.5rem;">Cathelin Eloim | Nail Designer</p>
+
+    <form action="{{ url_for('login') }}" method="POST">
+        <div class="form-group">
+            <label for="username">Usuário Administrador:</label>
+            <input type="text" id="username" name="username" placeholder="Usuário" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Senha de Acesso:</label>
+            <input type="password" id="password" name="password" placeholder="Senha" required>
+        </div>
+        <button type="submit" class="btn-pink-action full-width" style="margin-bottom: 12px;">Acessar Painel</button>
+        <div style="text-align: center; margin-top: 10px;">
+            <a href="{{ url_for('recuperar_senha') }}" style="color: #7a1c3d; font-size: 0.85rem; text-decoration: none;">Esqueceu sua senha ou usuário? Clique aqui</a>
+        </div>
+    </form>
+</div>
 {% endblock %}

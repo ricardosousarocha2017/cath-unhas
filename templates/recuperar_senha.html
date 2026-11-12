@@ -1,9 +1,15 @@
 {% extends "base.html" %}
-{% block title %}Recuperar Senha{% endblock %}
 {% block content %}
-<h2>Recuperação de Senha</h2>
-<form method="POST">
-    <input type="email" name="email" placeholder="Digite seu e-mail" required><br>
-    <button type="submit">Enviar Instruções</button>
-</form>
+<div class="glass-form-container" style="max-width: 440px;">
+    <h2>🔑 Recuperar Acesso</h2>
+    <p style="color: #aa396e; margin-bottom: 1.5rem;">Gerar novas credenciais e enviar para o WhatsApp</p>
+
+    <form action="{{ url_for('recuperar_senha') }}" method="POST">
+        <p style="font-size: 0.9rem; color: #555; margin-bottom: 20px; line-height: 1.5;">
+            Ao clicar no botão abaixo, o sistema disparará as credenciais de acesso para o WhatsApp do Administrador cadastrado.
+        </p>
+        <button type="submit" class="btn-pink-action full-width" style="margin-bottom: 12px;">📲 Enviar Dados por WhatsApp</button>
+        <a href="{{ url_for('login') }}" class="btn-insta-outline full-width" style="text-align: center; display: block; padding: 10px; text-decoration: none;">Voltar para o Login</a>
+    </form>
+</div>
 {% endblock %}

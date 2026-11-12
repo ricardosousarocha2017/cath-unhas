@@ -1,6 +1,45 @@
 {% extends "base.html" %}
-{% block title %}Sucesso{% endblock %}
 {% block content %}
-<h2>Agendamento Realizado com Sucesso!</h2>
-<a href="{{ url_for('comprovante') }}">Ver Comprovante</a>
+<div class="glass-form-container" style="text-align: center;">
+    <div style="font-size: 3rem; margin-bottom: 0.5rem;">✨</div>
+    <h2>Agendamento Realizado com Sucesso!</h2>
+    <p style="color: #aa396e; margin-bottom: 1.5rem;">Obrigado, <strong>{{ nome }}</strong>! Sua reserva foi registrada e um comprovante digital foi emitido para você e para o Studio.</p>
+    
+    <div style="background: #fff0f6; border-radius: 14px; padding: 1.5rem; text-align: left; margin-bottom: 1.5rem; border: 1px solid #fce4ec;">
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #f8bbd0;"><span>ID da Reserva:</span> <strong>#{{ agendamento_id }}</strong></div>
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #f8bbd0;"><span>Procedimento:</span> <strong>{{ servico }}</strong></div>
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #f8bbd0;"><span>Valor Total:</span> <strong>R$ {{ "%.2f"|format(preco) }}</strong></div>
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #f8bbd0;"><span>Sinal de Garantia:</span> <strong>R$ {{ "%.2f"|format(valor_sinal) }}</strong></div>
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #f8bbd0;"><span>Forma de Pagamento:</span> <strong>{{ forma_pagamento }}</strong></div>
+        <div style="display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #f8bbd0;"><span>Status do Sinal:</span> <strong style="color: #d63384;">{{ status_sinal }}</strong></div>
+        <div style="display: flex; justify-content: space-between; padding: 6px 0;"><span>Data / Horário:</span> <strong>{{ data }} às {{ hora }}</strong></div>
+    </div>
+
+    <div style="background: #fff3f8; border: 1px solid #f8d7da; padding: 15px; border-radius: 12px; color: #7a1c3d; text-align: left; font-size: 0.95rem; margin-bottom: 1.5rem;">
+        ⚠️ <strong>Aviso Importante sobre o Pagamento:</strong><br>
+        O seu comprovante de Pix / Pagamento via Link foi registrado e enviado ao sistema. O pagamento passará por conferência automática e manual no banco. Assim que validado, o status será atualizado para confirmado no Studio.
+    </div>
+
+    {% if 'Pix' in forma_pagamento %}
+    <div class="payment-toggle-card">
+        <h4>📱 Pagamento do Sinal via Pix</h4>
+        <p>Realize o Pix no valor de <strong>R$ {{ "%.2f"|format(valor_sinal) }}</strong> para garantir seu horário:</p>
+        <div class="qr-code-wrapper">
+            <img src="{{ url_for('static', filename='images/' + configs.get('qr_code_image', 'qrcode_pix.png')) }}" alt="QR Code Pix" class="qr-code-img">
+        </div>
+        <p style="margin-top: 0.5rem;">Chave Pix: <strong>{{ configs.get('pix_chave', '11963271437') }}</strong></p>
+    </div>
+    {% elif 'Cartão' in forma_pagamento or 'Crédito' in forma_pagamento %}
+    <div class="payment-toggle-card">
+        <h4>💳 Pagamento do Sinal via Link de Cartão</h4>
+        <p>Clique no link abaixo para concluir o pagamento do sinal de <strong>R$ {{ "%.2f"|format(valor_sinal) }}</strong>:</p>
+        <a href="{{ link_pagamento }}" target="_blank" class="btn-card-link" style="display: inline-block; margin-top: 0.8rem;">🔗 Pagar Sinal com Cartão</a>
+    </div>
+    {% endif %}
+
+    <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.8rem; flex-wrap: wrap;">
+        <a href="{{ url_for('comprovante', agendamento_id=agendamento_id) }}" target="_blank" class="btn-pink-action">📄 Visualizar / Imprimir Comprovante Oficial</a>
+        <a href="{{ url_for('home') }}" class="btn-insta-outline">← Voltar para o Início</a>
+    </div>
+</div>
 {% endblock %}

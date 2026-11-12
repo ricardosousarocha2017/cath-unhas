@@ -3,24 +3,42 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Meu Sistema{% endblock %}</title>
+    <title>Cathelin Eloim | Nail Designer — Itapecerica da Serra</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
+    <header class="navbar">
+        <div class="logo">
+            <span class="brand-title">Cathelin Eloim</span>
+            <span class="brand-sub">Nail Designer 🏆</span>
+        </div>
         <nav>
             <a href="{{ url_for('home') }}">Início</a>
-            <a href="{{ url_for('booking') }}">Agendar</a>
-            <a href="{{ url_for('login') }}">Login</a>
+            <a href="{{ url_for('booking') }}">Agendar Horário</a>
+            {% if session.get('logged_in') %}
+                <a href="{{ url_for('admin') }}">⚙️ Gestão & Acesso</a>
+                <a href="{{ url_for('logout') }}">Sair</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Área Restrita</a>
+            {% endif %}
         </nav>
     </header>
-    
-    <main class="container">
+
+    <div class="main-wrapper">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
         {% block content %}{% endblock %}
-    </main>
+    </div>
 
     <footer>
-        <p>&copy; 2026 - Todos os direitos reservados.</p>
+        <p>&copy; 2026 Cathelin Eloim | Nail Designer — 8 anos de tradição em nail design e sofisticação ✨ | Itapecerica da Serra.</p>
     </footer>
 </body>
 </html>
