@@ -114,40 +114,43 @@
             <button type="submit" class="btn-pink-action">➕ Adicionar Novo Serviço</button>
         </form>
 
-        <div class="table-responsive">
-            <table class="admin-table">
-                <thead><tr><th>Foto</th><th>Procedimento</th><th>Preço Atual</th><th>Ações</th></tr></thead>
-                <tbody>
-                    {% for serv in servicos %}
-                    <tr>
-                        <td>
-                            {% if serv['imagem'].startswith('http://') or serv['imagem'].startswith('https://') %}
-                                <img src="{{ serv['imagem'] }}" alt="{{ serv['nome'] }}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 6px;">
-                            {% else %}
-                                <img src="{{ url_for('static', filename='images/' + serv['imagem']) }}" alt="{{ serv['nome'] }}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 6px;">
-                            {% endif %}
-                        </td>
-                        <td><strong>{{ serv['nome'] }}</strong></td>
-                        <td>R$ {{ "%.2f"|format(serv['preco']) }}</td>
-                        <td>
-                            <form action="{{ url_for('atualizar_servico_foto') }}" method="POST" enctype="multipart/form-data" style="display:inline-flex; gap: 5px; align-items: center;">
-                                <input type="hidden" name="servico_id" value="{{ serv['id'] }}">
-                                <input type="number" step="0.01" name="novo_preco" value="{{ serv['preco'] }}" style="width: 80px; padding: 4px;" required>
-                                <input type="file" name="nova_foto_file" accept="image/*" style="font-size: 0.75rem; width: 110px;">
-                                <button type="submit" class="btn-sm btn-edit">Atualizar</button>
-                            </form>
-                            <form action="{{ url_for('remover_servico', servico_id=serv['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Deseja realmente excluir este serviço?');">
-                                <button type="submit" class="btn-sm btn-danger">Excluir</button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="admin-card">
+        <form action="{{ url_for('atualizar_todos_servicos') }}" method="POST" enctype="multipart/form-data">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem;">
+                <h4 style="color: #7a1c3d; margin: 0;">⚡ Comando Único: Atualizar Todos os Serviços</h4>
+                <button type="submit" class="btn-pink-action" style="padding: 10px 20px; font-size: 0.95rem;">💾 Salvar Alterações de Todos os Serviços</button>
+            </div>
+            <div class="table-responsive">
+                <table class="admin-table">
+                    <thead><tr><th>Foto</th><th>Procedimento</th><th>Preço Atual</th><th>Alterar Preço & Nova Foto / Ações</th></tr></thead>
+                    <tbody>
+                        {% for serv in servicos %}
+                        <tr>
+                            <td>
+                                {% if serv['imagem'].startswith('http://') or serv['imagem'].startswith('https://') %}
+                                    <img src="{{ serv['imagem'] }}" alt="{{ serv['nome'] }}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 6px;">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='images/' + serv['imagem']) }}" alt="{{ serv['nome'] }}" style="width: 45px; height: 45px; object-fit: cover; border-radius: 6px;">
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ serv['nome'] }}</strong></td>
+                            <td>R$ {{ "%.2f"|format(serv['preco']) }}</td>
+                            <td>
+                                <div style="display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                    <input type="number" step="0.01" name="preco_{{ serv['id'] }}" value="{{ serv['preco'] }}" style="width: 85px; padding: 4px;" required>
+                                    <input type="file" name="foto_{{ serv['id'] }}" accept="image/*" style="font-size: 0.75rem; width: 130px;">
+                        </form>
+                                    <form action="{{ url_for('remover_servico', servico_id=serv['id']) }}" method="POST" style="display:inline;" onsubmit="return confirm('Deseja realmente excluir este serviço?');">
+                                        <button type="submit" class="btn-sm btn-danger">Excluir</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        
+    </div>    <div class="admin-card">
         <h3>🔐 Segurança: Alterar Dados de Acesso Restrito</h3>
         <p style="font-size: 0.9rem; color: #8c2759; margin-bottom: 1rem;">Altere o nome de usuário e a senha de administrador do sistema.</p>
         <form action="{{ url_for('alterar_senha') }}" method="POST" style="display: flex; flex-direction: column; gap: 1rem;">

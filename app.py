@@ -799,5 +799,44 @@ def salvar_tudo():
 
     return redirect(url_for('admin'))
 
+
+@app.route('/admin/atualizar-todos-servicos', methods=['POST'])
+def atualizar_todos_servicos():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        conn = get_db_connection()
+        servicos = conn.execute('SELECT * FROM servicos').fetchall()
+
+        for serv in servicos:
+            s_id = str(serv['id'])
+            preco_key = f'preco_{s_id}'
+            file_key = f'foto_{s_id}'
+
+            novo_preco = request.form.get(preco_key)
+            if novo_preco:
+                try:
+                    preco_val = float(str(novo_preco).replace(',', '.'))
+                    conn.execute('UPDATE servicos SET preco = ? WHERE id = ?', (preco_val, s_id))
+                except:
+                    pass
+
+            if file_key in request.files and request.files[file_key].filename != '':
+                file = request.files[file_key]
+                if file and allowed_file(file.filename):
+                    filename = secure_filename(file.filename)
+                    file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                    conn.execute('UPDATE servicos SET imagem = ? WHERE id = ?', (filename, s_id))
+
+        conn.commit()
+        conn.close()
+        flash('Todos os serviços foram atualizados com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro ao atualizar serviços: {e}', 'error')
+
+    return redirect(url_for('admin'))
+
+
 if __name__ == '__main__':
     app.run(debug=True)
