@@ -474,3 +474,34 @@ def atualizar_avatar_perfil():
 @app.route('/admin/atualizar-sinal-pix-alias', methods=['POST'])
 def admin_atualizar_sinal_pix():
     return atualizar_sinal_pix()
+
+@app.route('/admin/adicionar-servico', methods=['POST'])
+def adicionar_servico():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        nome_servico = request.form.get('nome_servico', '').strip()
+        preco_servico = request.form.get('preco_servico', '0').strip()
+        imagem_servico = 'banho_gel.jpeg'
+        
+        if 'foto_file' in request.files and request.files['foto_file'].filename != '':
+            file = request.files['foto_file']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                imagem_servico = filename
+        elif request.form.get('imagem_url'):
+            imagem_servico = request.form.get('imagem_url').strip()
+
+        if nome_servico and preco_servico:
+            conn = get_db_connection()
+            conn.execute('INSERT INTO servicos (nome, preco, imagem) VALUES (?, ?, ?)', 
+                         (nome_servico, float(str(preco_servico).replace(',', '.')), imagem_servico))
+            conn.commit()
+            conn.close()
+            flash('Serviço cadastrado com sucesso!', 'success')
+    except Exception as e:
+        flash(f'Erro ao cadastrar serviço: {e}', 'danger')
+
+    return redirect(url_for('admin'))
