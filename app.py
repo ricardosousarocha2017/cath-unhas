@@ -470,3 +470,7 @@ def atualizar_avatar_perfil():
         flash(f'Erro ao atualizar foto de perfil: {e}', 'danger')
 
     return redirect(url_for('admin'))
+
+@app.route('/admin/atualizar-sinal-pix-alias', methods=['POST'])
+def admin_atualizar_sinal_pix():
+    return atualizar_sinal_pix()
