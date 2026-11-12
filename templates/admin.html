@@ -7,29 +7,61 @@
         <p class="admin-welcome">Bem-vinda de volta, <strong>{{ username }}</strong>!</p>
     </div>
 
-    <!-- Estatísticas Principais -->
+    <!-- Estatísticas Principais & Contabilidade Profissional -->
     <div class="stats-grid">
-        <div class="stat-card">
+        <div class="stat-card gold-border">
             <span class="stat-icon">💰</span>
             <div>
                 <h3>Faturamento Total</h3>
                 <p class="stat-value">R$ {{ "%.2f"|format(total_faturamento) }}</p>
+                <small style="color: #aa396e; font-weight: 600;">Acumulado Geral</small>
             </div>
         </div>
-        <div class="stat-card">
+        <div class="stat-card pink-border">
+            <span class="stat-icon">📈</span>
+            <div>
+                <h3>Ticket Médio</h3>
+                <p class="stat-value">R$ {{ "%.2f"|format(ticket_medio) }}</p>
+                <small style="color: #aa396e; font-weight: 600;">Por Atendimento ({{ total_atendimentos }} total)</small>
+            </div>
+        </div>
+        <div class="stat-card purple-border">
             <span class="stat-icon">💳</span>
             <div>
-                <h3>Sinais Pix / Cartão</h3>
-                <p class="stat-value">{{ sinais_pix + sinais_cartao }} clientes</p>
-                <small style="color: #666; font-size: 0.8rem;">(Pix: {{ sinais_pix }} | Cartão: {{ sinais_cartao }})</small>
+                <h3>Formas de Sinal</h3>
+                <p class="stat-value">{{ sinais_pix + sinais_cartao + sinais_studio }} pagos</p>
+                <small style="color: #666; font-size: 0.8rem;">(Pix: {{ sinais_pix }} | Cartão: {{ sinais_cartao }} | Studio: {{ sinais_studio }})</small>
             </div>
         </div>
-        <div class="stat-card">
-            <span class="stat-icon">🏬</span>
-            <div>
-                <h3>Sinais no Studio</h3>
-                <p class="stat-value">{{ sinais_studio }} clientes</p>
-            </div>
+    </div>
+
+    <!-- Relatório de Contabilidade por Serviço -->
+    <div class="admin-card highlight-box">
+        <h3>📊 Relatório de Contabilidade e Desempenho por Procedimento</h3>
+        <p class="admin-sub">Análise detalhada de receita e volume de atendimento por cada tipo de serviço prestado no Studio.</p>
+        <div class="table-responsive">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Procedimento</th>
+                        <th>Atendimentos Realizados</th>
+                        <th>Receita Gerada</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in relatorio_servicos %}
+                    <tr>
+                        <td><strong>{{ r['servico'] }}</strong></td>
+                        <td>{{ r['qtd'] }} agendamentos</td>
+                        <td><strong style="color: #d63384;">R$ {{ "%.2f"|format(r['total']) }}</strong></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="3" class="text-center">Nenhum dado contábil registrado ainda.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 

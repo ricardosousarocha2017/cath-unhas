@@ -396,8 +396,8 @@ def alterar_status_sinal(agendamento_id):
             conn.commit()
             conn.close()
 
-            # Se o status for Pix Confirmado, enviar WhatsApp de confirmação de sinal conferido junto ao banco
-            if agendamento and ('Confirmado' in novo_status_sinal or 'Pix Confirmado' in novo_status_sinal):
+            # Disparar devolutiva via Green-API para o WhatsApp do cliente quando o sinal for confirmado
+            if agendamento and ('Confirmado' in novo_status_sinal or 'Pix Confirmado' in novo_status_sinal or 'Recebido' in novo_status_sinal):
                 telefone_cliente = agendamento['telefone']
                 nome_cliente = agendamento['nome']
                 servico_cliente = agendamento['servico']
@@ -405,7 +405,6 @@ def alterar_status_sinal(agendamento_id):
                 hora_cliente = agendamento['hora']
                 valor_sinal_val = agendamento['valor_sinal'] if agendamento['valor_sinal'] else 30.0
 
-                # Formatar telefone para WhatsApp
                 target_wa = "".join([c for c in str(telefone_cliente) if c.isdigit()])
                 if len(target_wa) <= 11 and not target_wa.startswith('55'):
                     target_wa = '55' + target_wa
@@ -425,7 +424,7 @@ def alterar_status_sinal(agendamento_id):
                     try:
                         requests.post(url_green, json={"chatId": f"{target_wa}@c.us", "message": msg_confirmacao}, headers=headers, timeout=5)
                     except Exception as ex:
-                        print("Erro ao enviar WhatsApp Green-API:", ex)
+                        print("Erro ao enviar WhatsApp Green-API ao cliente:", ex)
 
             flash(f'Status do sinal atualizado para "{novo_status_sinal}" e devolutiva enviada ao cliente com sucesso!', 'success')
     except Exception as e:
