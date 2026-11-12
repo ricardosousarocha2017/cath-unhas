@@ -2,6 +2,39 @@
 
 {% block content %}
 <div class="admin-container">
+
+    <!-- COMANDO ÚNICO DE SALVAMENTO GLOBAL -->
+    <div class="admin-card" style="background: linear-gradient(135deg, #fff0f6, #ffe3eb); border: 2px solid #d63384; margin-bottom: 2rem;">
+        <form action="{{ url_for('salvar_tudo') }}" method="POST" enctype="multipart/form-data">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                    <h3 style="color: #702646; margin-bottom: 0.3rem;">⚡ Comando Único: Salvar Todas as Configurações</h3>
+                    <p style="font-size: 0.9rem; color: #8c2759; margin: 0;">Atualize valores de sinal, chaves Pix, links de cartão, QR Code e Avatar de uma só vez!</p>
+                </div>
+                <button type="submit" class="btn-pink-action" style="padding: 14px 28px; font-size: 1rem; box-shadow: 0 6px 20px rgba(214, 51, 132, 0.4);">💾 Salvar Todas as Alterações</button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.5rem; border-top: 1px dashed #f4b8d3; padding-top: 1.2rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>💰 Valor do Sinal (R$):</label>
+                    <input type="text" name="valor_sinal_padrao" value="{{ configs.get('valor_sinal_padrao', '30.00') }}" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>💳 Link de Cartão:</label>
+                    <input type="url" name="link_cartao_padrao" value="{{ configs.get('link_cartao_padrao', '') }}" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>🔑 Chave Pix:</label>
+                    <input type="text" name="pix_chave" value="{{ configs.get('pix_chave', '') }}" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>👤 Titular Pix:</label>
+                    <input type="text" name="pix_titular" value="{{ configs.get('pix_titular', '') }}" required>
+                </div>
+            </div>
+        </form>
+    </div>
+
     <div class="admin-header-flex">
         <h2>📊 Painel Executivo — Cathelin Eloim Studio</h2>
         <p class="admin-welcome">Bem-vinda de volta, <strong>{{ username }}</strong>!</p>

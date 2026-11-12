@@ -754,3 +754,52 @@ def recuperar_senha():
         return render_template('recuperar_senha.html', configs=configs)
     except Exception as e:
         return f"Erro na recuperação de senha: {e}", 500
+
+@app.route('/admin/salvar-tudo', methods=['POST'])
+def salvar_tudo():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+
+    try:
+        conn = get_db_connection()
+        
+        # 1. Configurações de pagamento e sinal
+        valor_sinal = request.form.get('valor_sinal_padrao')
+        link_cartao = request.form.get('link_cartao_padrao')
+        pix_chave = request.form.get('pix_chave')
+        pix_titular = request.form.get('pix_titular')
+        pix_banco = request.form.get('pix_banco')
+
+        if valor_sinal:
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('valor_sinal_padrao', ?)", (valor_sinal,))
+        if link_cartao:
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('link_cartao_padrao', ?)", (link_cartao,))
+        if pix_chave:
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_chave', ?)", (pix_chave,))
+        if pix_titular:
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_titular', ?)", (pix_titular,))
+        if pix_banco:
+            conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('pix_banco', ?)", (pix_banco,))
+
+        # 2. Upload de QR Code ou Avatar se enviados
+        if 'qr_code_file' in request.files and request.files['qr_code_file'].filename != '':
+            file = request.files['qr_code_file']
+            if file and allowed_file(file.filename):
+                filename = secure_filename('qrcode_' + file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('qr_code_image', ?)", (filename,))
+
+        if 'avatar_file' in request.files and request.files['avatar_file'].filename != '':
+            file = request.files['avatar_file']
+            if file and allowed_file(file.filename):
+                filename = secure_filename('avatar_' + file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                conn.execute("INSERT OR REPLACE INTO config (chave, valor) VALUES ('avatar_perfil', ?)", (filename,))
+
+        conn.commit()
+        conn.close()
+        flash('Todas as alterações foram salvas com sucesso em um único comando!', 'success')
+    except Exception as e:
+        flash(f'Erro ao salvar alterações: {e}', 'danger')
+
+    return redirect(url_for('admin'))
