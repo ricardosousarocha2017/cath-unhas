@@ -389,10 +389,45 @@ def alterar_status_sinal(agendamento_id):
         novo_status_sinal = request.form.get('novo_status_sinal')
         if novo_status_sinal:
             conn = get_db_connection()
+            agendamento = conn.execute('SELECT * FROM agendamentos WHERE id = ?', (agendamento_id,)).fetchone()
+            configs = {row['chave']: row['valor'] for row in conn.execute('SELECT * FROM config').fetchall()}
+            
             conn.execute('UPDATE agendamentos SET status_sinal = ? WHERE id = ?', (novo_status_sinal, agendamento_id))
             conn.commit()
             conn.close()
-            flash(f'Status do sinal atualizado para "{novo_status_sinal}"!', 'success')
+
+            # Se o status for Pix Confirmado, enviar WhatsApp de confirmação de sinal conferido junto ao banco
+            if agendamento and ('Confirmado' in novo_status_sinal or 'Pix Confirmado' in novo_status_sinal):
+                telefone_cliente = agendamento['telefone']
+                nome_cliente = agendamento['nome']
+                servico_cliente = agendamento['servico']
+                data_cliente = agendamento['data']
+                hora_cliente = agendamento['hora']
+                valor_sinal_val = agendamento['valor_sinal'] if agendamento['valor_sinal'] else 30.0
+
+                # Formatar telefone para WhatsApp
+                target_wa = "".join([c for c in str(telefone_cliente) if c.isdigit()])
+                if len(target_wa) <= 11 and not target_wa.startswith('55'):
+                    target_wa = '55' + target_wa
+
+                green_id = configs.get('green_instance_id', '710722792308').strip()
+                green_token = configs.get('green_api_token', 'df045e5d35e245f08cda18c3dab805e49ecbf003012d478089').strip()
+
+                if green_id and green_token and target_wa:
+                    msg_confirmacao = (
+                        f"✨ *CATHELIN ELOIM STUDIO — SINAL CONFIRMADO* ✨\n\n"
+                        f"Olá, *{nome_cliente}*! 💖\n\n"
+                        f"Informamos que o pagamento do seu sinal (R$ {valor_sinal_val:.2f}) referente ao agendamento de *{servico_cliente}* para o dia *{data_cliente}* às *{hora_cliente}* foi **conferido e confirmado junto ao banco com sucesso!** ✅\n\n"
+                        f"Seu horário está oficialmente garantido. Estamos ansiosas para recebê-la! 💅✨"
+                    )
+                    url_green = f"https://7107.api.greenapi.com/waInstance{green_id}/sendMessage/{green_token}"
+                    headers = {'Content-Type': 'application/json'}
+                    try:
+                        requests.post(url_green, json={"chatId": f"{target_wa}@c.us", "message": msg_confirmacao}, headers=headers, timeout=5)
+                    except Exception as ex:
+                        print("Erro ao enviar WhatsApp Green-API:", ex)
+
+            flash(f'Status do sinal atualizado para "{novo_status_sinal}" e devolutiva enviada ao cliente com sucesso!', 'success')
     except Exception as e:
         flash(f'Erro ao alterar status: {e}', 'danger')
 
