@@ -30,6 +30,14 @@
                     <label>👤 Titular Pix:</label>
                     <input type="text" name="pix_titular" value="{{ configs.get('pix_titular', '') }}" required>
                 </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>📱 Imagem QR Code Pix (Arquivo):</label>
+                    <input type="file" name="qr_code_file" accept="image/*">
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label>🖼️ Foto Perfil Avatar (Arquivo):</label>
+                    <input type="file" name="avatar_file" accept="image/*">
+                </div>
             </div>
         </form>
     </div>
